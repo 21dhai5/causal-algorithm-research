@@ -1,0 +1,25 @@
+name: 研究或功能提案
+description: 先定义可检验问题和验证方案，再讨论实现。
+title: "[提案] "
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 研究问题与目标
+      description: 要解释关联、预测未来、估计干预，还是选择行动？目标人群和时间跨度是什么？
+    validations:
+      required: true
+  - type: textarea
+    id: identification
+    attributes:
+      label: 数据、假设与识别路径
+      description: 说明变量、时钟、混杂、支持及不可识别的可能性；未知条件请写明未知。
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: 验证与失败标准
+      description: 提供基线、时间切分、评估指标、资源需求及安全风险。
+    validations:
+      required: true

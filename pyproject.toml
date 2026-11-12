@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=75"] # 构建时使用标准 Python 包工具。
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causal-algorithm-research"
+version = "0.1.0"
+description = "Synthetic-only chronological causal and prediction research prototype"
+requires-python = ">=3.12"
+dependencies = ["numpy>=2.0,<3"] # 仅依赖稳定的数组与线性代数接口。
+
+[tool.setuptools.packages.find]
+where = ["src"] # 源目录可直接通过 PYTHONPATH 导入。

@@ -1,0 +1,22 @@
+# 私人数据、凭据与本地环境始终留在设备上。
+.env
+.env.*
+!.env.example
+data/private/
+*.pem
+*.key
+.venv/
+venv/
+
+# 研究结果由显式运行生成并保留；仅忽略可重建的中间文件。
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+node_modules/
+
+# 本地代码索引与自动生成的代理入口不进入公开仓库。
+.codegraph/
+/AGENTS.md

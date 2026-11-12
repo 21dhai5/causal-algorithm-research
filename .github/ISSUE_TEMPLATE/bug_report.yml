@@ -1,0 +1,25 @@
+name: Bug 报告
+description: 报告算法、时间边界、数据来源或程序错误。
+title: "[Bug] "
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境和版本
+      description: 提交号、Python/NumPy 版本、操作系统。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现方式
+      description: 提供命令、种子及合成或脱敏输入，不提交凭据和私人数据。
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 预期与实际结果
+      description: 说明错误影响的是预测、因果估计、时序审计还是程序运行。
+    validations:
+      required: true

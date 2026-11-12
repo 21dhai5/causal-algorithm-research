@@ -1,0 +1,1253 @@
+{
+  "ablation_scope": "20 training-window coefficient comparisons; omitted-x regression is not identified",
+  "block_length_comparison": [
+    {
+      "config": {
+        "block_length": 3,
+        "bootstrap_draws": 400,
+        "dgp": {
+          "action_probability": "clip(expit(0.8*x_t - 0.2*y_t), 0.1, 0.9)",
+          "initial_x_previous": 0,
+          "initial_y_t": 0,
+          "state_availability": "x_t and y_t measured at origin even when feedback labels are delayed",
+          "x_t": "0.6*x_previous + Normal(0,1)",
+          "y_next": "0.5*y_t + 0.8*x_t + 1.5*action + Normal(0,1)"
+        },
+        "forecast_fit": "PREQUENTIAL_AVAILABLE_OBSERVATIONS_ONLY",
+        "label_delay": 0,
+        "nuisance_fit": "TRAIN_ONLY_FIXED",
+        "replications": 20,
+        "samples": 1200,
+        "seed": 20261112,
+        "split": {
+          "calibration": [
+            720,
+            960
+          ],
+          "test": [
+            960,
+            1200
+          ],
+          "train": [
+            0,
+            720
+          ]
+        }
+      },
+      "summary": {
+        "adjusted_g_computation": {
+          "bias": 0.025586081885199195,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.08807818879563827,
+          "valid_replications": 20
+        },
+        "association_only": {
+          "bias": 0.5816668506943949,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.6171164173903273,
+          "valid_replications": 20
+        },
+        "coverage_denominator": "VALID_REPLICATIONS_ONLY; inspect refusals",
+        "estimated_propensity_aipw": {
+          "bias": 0.011366738551884914,
+          "empirical_ci_coverage": 0.95,
+          "requested_replications": 20,
+          "rmse": 0.12968312621129827,
+          "valid_replications": 20
+        }
+      }
+    },
+    {
+      "config": {
+        "block_length": 6,
+        "bootstrap_draws": 400,
+        "dgp": {
+          "action_probability": "clip(expit(0.8*x_t - 0.2*y_t), 0.1, 0.9)",
+          "initial_x_previous": 0,
+          "initial_y_t": 0,
+          "state_availability": "x_t and y_t measured at origin even when feedback labels are delayed",
+          "x_t": "0.6*x_previous + Normal(0,1)",
+          "y_next": "0.5*y_t + 0.8*x_t + 1.5*action + Normal(0,1)"
+        },
+        "forecast_fit": "PREQUENTIAL_AVAILABLE_OBSERVATIONS_ONLY",
+        "label_delay": 0,
+        "nuisance_fit": "TRAIN_ONLY_FIXED",
+        "replications": 20,
+        "samples": 1200,
+        "seed": 20261112,
+        "split": {
+          "calibration": [
+            720,
+            960
+          ],
+          "test": [
+            960,
+            1200
+          ],
+          "train": [
+            0,
+            720
+          ]
+        }
+      },
+      "summary": {
+        "adjusted_g_computation": {
+          "bias": 0.025586081885199195,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.08807818879563827,
+          "valid_replications": 20
+        },
+        "association_only": {
+          "bias": 0.5816668506943949,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.6171164173903273,
+          "valid_replications": 20
+        },
+        "coverage_denominator": "VALID_REPLICATIONS_ONLY; inspect refusals",
+        "estimated_propensity_aipw": {
+          "bias": 0.011366738551884914,
+          "empirical_ci_coverage": 0.95,
+          "requested_replications": 20,
+          "rmse": 0.12968312621129827,
+          "valid_replications": 20
+        }
+      }
+    },
+    {
+      "config": {
+        "block_length": 12,
+        "bootstrap_draws": 400,
+        "dgp": {
+          "action_probability": "clip(expit(0.8*x_t - 0.2*y_t), 0.1, 0.9)",
+          "initial_x_previous": 0,
+          "initial_y_t": 0,
+          "state_availability": "x_t and y_t measured at origin even when feedback labels are delayed",
+          "x_t": "0.6*x_previous + Normal(0,1)",
+          "y_next": "0.5*y_t + 0.8*x_t + 1.5*action + Normal(0,1)"
+        },
+        "forecast_fit": "PREQUENTIAL_AVAILABLE_OBSERVATIONS_ONLY",
+        "label_delay": 0,
+        "nuisance_fit": "TRAIN_ONLY_FIXED",
+        "replications": 20,
+        "samples": 1200,
+        "seed": 20261112,
+        "split": {
+          "calibration": [
+            720,
+            960
+          ],
+          "test": [
+            960,
+            1200
+          ],
+          "train": [
+            0,
+            720
+          ]
+        }
+      },
+      "summary": {
+        "adjusted_g_computation": {
+          "bias": 0.025586081885199195,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.08807818879563827,
+          "valid_replications": 20
+        },
+        "association_only": {
+          "bias": 0.5816668506943949,
+          "empirical_ci_coverage": null,
+          "requested_replications": 20,
+          "rmse": 0.6171164173903273,
+          "valid_replications": 20
+        },
+        "coverage_denominator": "VALID_REPLICATIONS_ONLY; inspect refusals",
+        "estimated_propensity_aipw": {
+          "bias": 0.011366738551884914,
+          "empirical_ci_coverage": 0.95,
+          "requested_replications": 20,
+          "rmse": 0.12968312621129827,
+          "valid_replications": 20
+        }
+      }
+    }
+  ],
+  "data_mode": "SYNTHETIC_ONLY",
+  "fixed_delay_experiment": {
+    "config": {
+      "block_length": 5,
+      "bootstrap_draws": 400,
+      "dgp": {
+        "action_probability": "clip(expit(0.8*x_t - 0.2*y_t), 0.1, 0.9)",
+        "initial_x_previous": 0,
+        "initial_y_t": 0,
+        "state_availability": "x_t and y_t measured at origin even when feedback labels are delayed",
+        "x_t": "0.6*x_previous + Normal(0,1)",
+        "y_next": "0.5*y_t + 0.8*x_t + 1.5*action + Normal(0,1)"
+      },
+      "forecast_fit": "PREQUENTIAL_AVAILABLE_OBSERVATIONS_ONLY",
+      "label_delay": 5,
+      "nuisance_fit": "TRAIN_ONLY_FIXED",
+      "replications": 10,
+      "samples": 600,
+      "seed": 20261212,
+      "split": {
+        "calibration": [
+          360,
+          480
+        ],
+        "test": [
+          480,
+          600
+        ],
+        "train": [
+          0,
+          360
+        ]
+      }
+    },
+    "drift_synthetic_comparison": {
+      "baseline_false_alarm_monitor": {
+        "alert_count": 0,
+        "alert_fraction": 0.0,
+        "first_alert_available_at": null,
+        "first_alert_origin": null,
+        "frozen_absolute_residual_threshold": 2.715506118427927,
+        "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+      },
+      "outcome_mean_shift": 3,
+      "scope": "ONE_PAIRED_SYNTHETIC_SEED_DEMONSTRATION",
+      "seed": 20261212,
+      "shift_origin": 480,
+      "shifted_monitor": {
+        "alert_count": 31,
+        "alert_fraction": 0.25833333333333336,
+        "first_alert_available_at": 486,
+        "first_alert_origin": 480,
+        "frozen_absolute_residual_threshold": 2.715506118427927,
+        "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+      },
+      "shifted_prediction": {
+        "empirical_interval_coverage": 0.4666666666666667,
+        "interval_half_width": 1.5850614589251213,
+        "mae": 1.8672200276587438,
+        "rmse": 2.1798391374882504,
+        "rows": 120
+      }
+    },
+    "inference": {
+      "causal_assumptions": [
+        "consistency",
+        "sequential_exchangeability_given_x_t_y_t",
+        "positivity"
+      ],
+      "ci_label": "APPROXIMATE_CONDITIONAL_MOVING_BLOCK_BOOTSTRAP_FIXED_NUISANCE",
+      "ci_nominal_coverage": 0.95,
+      "ci_scope": "HELDOUT_AIPW_SCORES_ONLY; excludes nuisance-fit uncertainty",
+      "limitations": [
+        "SYNTHETIC ONLY: cannot establish real-world causal efficacy or external validity.",
+        "Available-time filtering prevents label leakage but not informative delay or censoring bias.",
+        "Delayed-label simulation assumes current x_t,y_t are separately measured at origin; it is not a missing-state model.",
+        "Temporal dependence invalidates ordinary iid coverage arguments; reported intervals are approximate.",
+        "Fixed-nuisance block intervals omit training uncertainty; empirical coverage is not a guarantee.",
+        "Empirical overlap gates cannot prove population positivity or absence of hidden confounding.",
+        "Clipping weights cannot restore identification; this implementation refuses inadequate support.",
+        "The clipped generator policy is not exactly logistic; correct linear outcome model helps only in this DGP.",
+        "Prequential action-conditioned forecasts use observed current action; natural-policy forecasts are not implemented.",
+        "Drift alarms detect residual tails, not causal graph truth; online adaptation can reduce later alarms."
+      ]
+    },
+    "negative_controls": {
+      "absent_action_support_refuses_estimation": true,
+      "availability_before_event_rejected": true,
+      "conflicting_duplicate_rejected": true,
+      "correction_preserves_historical_snapshot": true,
+      "correction_visible_only_at_new_availability": true,
+      "counterfactual_rejected": true,
+      "current_origin_outcome_hidden": true,
+      "delayed_outcome_hidden_at_event": true,
+      "delayed_outcome_visible_at_availability": true,
+      "exact_duplicate_idempotent": true,
+      "missing_outcome_rejected": true,
+      "mixed_real_source_rejected": true,
+      "model_prediction_rejected": true,
+      "nonfinite_outcome_rejected": true,
+      "outcome_at_origin_rejected": true,
+      "same_origin_new_id_rejected": true,
+      "zero_delay_does_not_leak_at_origin": true
+    },
+    "planned_not_implemented": [
+      "natural_policy_mixture",
+      "multi_step_forecasting",
+      "reinforcement_learning",
+      "real_intervention_selection_or_execution",
+      "full_pipeline_inference"
+    ],
+    "provenance": {
+      "data_mode": "SYNTHETIC_ONLY",
+      "efficacy_claim": "NO_REAL_WORLD_EFFICACY_CLAIM",
+      "generator": "serial_ar1_confounding_v1",
+      "known_one_step_causal_effect": 1.5,
+      "numpy_version": "2.4.6",
+      "python_version": "3.12.10"
+    },
+    "replications": [
+      {
+        "causal": {
+          "aipw": 1.271307159476377,
+          "aipw_ci": [
+            0.8669473892267952,
+            1.7359413586044348
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.5112338839164616,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 1.7457025680271854,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 66,
+              "1": 54
+            },
+            "ess_by_arm": {
+              "0": 52.44770473956204,
+              "1": 45.20653235078319
+            },
+            "identification_proven": false,
+            "propensity_max": 0.87960808946135,
+            "propensity_min": 0.1337189927486351,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": -0.6835462285830783,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 3.781405400607774,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 2.715506118427927,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9083333333333333,
+            "interval_half_width": 1.5850614589251213,
+            "mae": 0.7837912371516661,
+            "rmse": 0.9643963416436566,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.925,
+            "interval_half_width": 3.148991788206412,
+            "mae": 1.3043307606875503,
+            "rmse": 1.6364094602899593,
+            "rows": 120
+          }
+        },
+        "seed": 20261212
+      },
+      {
+        "causal": {
+          "aipw": 1.4153366023675038,
+          "aipw_ci": [
+            1.0553785203540818,
+            1.825209150489171
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.5222874088165905,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 1.9161427065318968,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 77,
+              "1": 43
+            },
+            "ess_by_arm": {
+              "0": 65.21475780259682,
+              "1": 36.31445481106255
+            },
+            "identification_proven": false,
+            "propensity_max": 0.8888089358058635,
+            "propensity_min": 0.07279977820708258,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": 1.2254093982974268,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": -0.22909221077957143,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 3.1078054089760707,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9,
+            "interval_half_width": 1.8196834299797802,
+            "mae": 0.8451390819675931,
+            "rmse": 1.0587183597596805,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.9333333333333333,
+            "interval_half_width": 3.081154595339428,
+            "mae": 1.4261841305413725,
+            "rmse": 1.7600150658463232,
+            "rows": 120
+          }
+        },
+        "seed": 20261213
+      },
+      {
+        "causal": {
+          "aipw": 1.361257700976364,
+          "aipw_ci": [
+            1.022261065823964,
+            1.667532021577296
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.5288310441747215,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 2.114961487996757,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 73,
+              "1": 47
+            },
+            "ess_by_arm": {
+              "0": 68.2760224614352,
+              "1": 33.22051302939968
+            },
+            "identification_proven": false,
+            "propensity_max": 0.7465597325728217,
+            "propensity_min": 0.0901313534491247,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": -1.8134650542007396,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": -0.533857419453451,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 3.041233858475417,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9666666666666667,
+            "interval_half_width": 1.8425787122144717,
+            "mae": 0.707228908897482,
+            "rmse": 0.8814844973909998,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.9583333333333334,
+            "interval_half_width": 3.6079095339743192,
+            "mae": 1.3420222635703982,
+            "rmse": 1.684440261417177,
+            "rows": 120
+          }
+        },
+        "seed": 20261214
+      },
+      {
+        "causal": {
+          "aipw": 1.4378890232793855,
+          "aipw_ci": [
+            1.0499884457200495,
+            1.8757407624997713
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.5056778354057192,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 1.9629750751869535,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 66,
+              "1": 54
+            },
+            "ess_by_arm": {
+              "0": 51.81393766726982,
+              "1": 41.0807786818095
+            },
+            "identification_proven": false,
+            "propensity_max": 0.8582928312008282,
+            "propensity_min": 0.08329414398823819,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": -0.23469188508485783,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 0.41836232283490005,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 3.0052088718070324,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9916666666666667,
+            "interval_half_width": 2.084746511646984,
+            "mae": 0.8045817507594781,
+            "rmse": 0.9779362382910899,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.9416666666666667,
+            "interval_half_width": 3.753933473686806,
+            "mae": 1.4979053810789653,
+            "rmse": 1.8646737253115917,
+            "rows": 120
+          }
+        },
+        "seed": 20261215
+      },
+      {
+        "causal": {
+          "aipw": 1.6872415928002653,
+          "aipw_ci": [
+            1.2767787552643621,
+            2.088550161958925
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.4983535021787544,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 2.5482789892306585,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 73,
+              "1": 47
+            },
+            "ess_by_arm": {
+              "0": 42.2100339481136,
+              "1": 41.65588176263763
+            },
+            "identification_proven": false,
+            "propensity_max": 0.9334350485919687,
+            "propensity_min": 0.06765849907677458,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": 0.8339010173410782,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": -0.3749902298836986,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 1,
+            "alert_fraction": 0.008333333333333333,
+            "first_alert_available_at": 506,
+            "first_alert_origin": 500,
+            "frozen_absolute_residual_threshold": 3.069138568684093,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.925,
+            "interval_half_width": 1.8246950430225692,
+            "mae": 0.778355222105692,
+            "rmse": 0.9928986882129771,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.8916666666666667,
+            "interval_half_width": 3.3676199462741083,
+            "mae": 1.7299244027909533,
+            "rmse": 2.075636471331071,
+            "rows": 120
+          }
+        },
+        "seed": 20261216
+      },
+      {
+        "causal": {
+          "aipw": 1.5356956769791352,
+          "aipw_ci": [
+            1.0338504583011348,
+            2.1036781378414595
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.3527502269113068,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 2.4092755697151325,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 54,
+              "1": 66
+            },
+            "ess_by_arm": {
+              "0": 48.509289149915254,
+              "1": 50.04872173026076
+            },
+            "identification_proven": false,
+            "propensity_max": 0.8316998200925042,
+            "propensity_min": 0.07119264450100292,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": -0.23259647783103607,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 5.755742999634821,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 2.882121245772044,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9,
+            "interval_half_width": 1.680485917280049,
+            "mae": 0.8127702455369475,
+            "rmse": 1.0264599786099997,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.8916666666666667,
+            "interval_half_width": 3.085354843288124,
+            "mae": 1.4771843857140792,
+            "rmse": 1.8275947558033228,
+            "rows": 120
+          }
+        },
+        "seed": 20261217
+      },
+      {
+        "causal": {
+          "aipw": 1.5943328412920883,
+          "aipw_ci": [
+            1.2087205297154402,
+            1.9795475552711654
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.4076355494691668,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 1.663826784681662,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 72,
+              "1": 48
+            },
+            "ess_by_arm": {
+              "0": 53.83685331827777,
+              "1": 40.89848591762973
+            },
+            "identification_proven": false,
+            "propensity_max": 0.8967578925055638,
+            "propensity_min": 0.05120121583857395,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": 0.7101949659318171,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 0.5582236386435983,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 3.0304304991238613,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9416666666666667,
+            "interval_half_width": 1.6972565526356476,
+            "mae": 0.7590698520369508,
+            "rmse": 0.9325757230952185,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.95,
+            "interval_half_width": 3.3340389302517357,
+            "mae": 1.4264713349045126,
+            "rmse": 1.7716797959454358,
+            "rows": 120
+          }
+        },
+        "seed": 20261218
+      },
+      {
+        "causal": {
+          "aipw": 1.5602728087368865,
+          "aipw_ci": [
+            1.1443886056522004,
+            1.8642709092231624
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.6360825257013214,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 2.689915470012447,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 65,
+              "1": 55
+            },
+            "ess_by_arm": {
+              "0": 61.8127245156875,
+              "1": 48.228949218779114
+            },
+            "identification_proven": false,
+            "propensity_max": 0.9251545934284413,
+            "propensity_min": 0.07780824917435065,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": -0.8937469898624912,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 3.8260854396361226,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 0,
+            "alert_fraction": 0.0,
+            "first_alert_available_at": null,
+            "first_alert_origin": null,
+            "frozen_absolute_residual_threshold": 3.2141093237803187,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.875,
+            "interval_half_width": 1.6649105519547005,
+            "mae": 0.8442368617197675,
+            "rmse": 1.0725704689685789,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.825,
+            "interval_half_width": 2.637385515600654,
+            "mae": 1.5292866648702694,
+            "rmse": 1.9286507153588208,
+            "rows": 120
+          }
+        },
+        "seed": 20261219
+      },
+      {
+        "causal": {
+          "aipw": 1.2913340974301548,
+          "aipw_ci": [
+            0.9098668356253735,
+            1.6680749942175113
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.4439825061449032,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 1.8613751587066667,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 68,
+              "1": 52
+            },
+            "ess_by_arm": {
+              "0": 56.337871518549406,
+              "1": 30.92265895476832
+            },
+            "identification_proven": false,
+            "propensity_max": 0.8883343902925243,
+            "propensity_min": 0.0429466032686331,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": 1.1175873238903054,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 0.5620213098453111,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 2,
+            "alert_fraction": 0.016666666666666666,
+            "first_alert_available_at": 597,
+            "first_alert_origin": 591,
+            "frozen_absolute_residual_threshold": 2.826297387749392,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9416666666666667,
+            "interval_half_width": 1.8737586640551767,
+            "mae": 0.8467759727263097,
+            "rmse": 1.058612411848436,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.9416666666666667,
+            "interval_half_width": 3.1400614283936914,
+            "mae": 1.3443785979669387,
+            "rmse": 1.6502583699308446,
+            "rows": 120
+          }
+        },
+        "seed": 20261220
+      },
+      {
+        "causal": {
+          "aipw": 1.6514932577758197,
+          "aipw_ci": [
+            1.2800457635096887,
+            2.1244493769159676
+          ],
+          "association_label": "ASSOCIATION_ONLY",
+          "evaluation_as_of": 605,
+          "g_computation": 1.4585496554192223,
+          "heldout_rows": 120,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "naive_treated_minus_untreated": 2.308109437560872,
+          "nuisance_training_rows": 355,
+          "overlap": {
+            "accepted": true,
+            "arm_counts": {
+              "0": 64,
+              "1": 56
+            },
+            "ess_by_arm": {
+              "0": 48.22272670438834,
+              "1": 49.01731469124465
+            },
+            "identification_proven": false,
+            "propensity_max": 0.9285877636316135,
+            "propensity_min": 0.10061350401014138,
+            "reasons": [],
+            "weights_clipped": false
+          },
+          "propensity_iterations": 5,
+          "refusal_reason": null,
+          "status": "ESTIMATED_UNDER_SYNTHETIC_ASSUMPTIONS",
+          "target": "HELDOUT_TEST_AVERAGE_ONE_STEP_EFFECT"
+        },
+        "prediction": {
+          "audit_examples": [
+            {
+              "current_row_in_training": false,
+              "label_available_at": 486,
+              "max_training_available_at": 480,
+              "origin_time": 480,
+              "prediction": 3.638922588362247,
+              "target_event_time": 481,
+              "training_rows": 475
+            },
+            {
+              "current_row_in_training": false,
+              "label_available_at": 605,
+              "max_training_available_at": 599,
+              "origin_time": 599,
+              "prediction": 0.38759158924809656,
+              "target_event_time": 600,
+              "training_rows": 594
+            }
+          ],
+          "calibration_label_cutoff": 480,
+          "calibration_rows": 115,
+          "calibration_unavailable_rows": 5,
+          "drift_monitor": {
+            "alert_count": 2,
+            "alert_fraction": 0.016666666666666666,
+            "first_alert_available_at": 587,
+            "first_alert_origin": 581,
+            "frozen_absolute_residual_threshold": 3.019734335758962,
+            "label": "PREQUENTIAL_RESIDUAL_TAIL_MONITOR_NOT_CAUSAL_GRAPH_TRUTH"
+          },
+          "evaluation_as_of": 605,
+          "forecast_label": "ACTION_CONDITIONED_ONE_STEP_FORECAST",
+          "interval_nominal_coverage": 0.9,
+          "label_maturity_protocol": "ALL_TEST_LABELS_MATURED",
+          "labels_unavailable_at_last_test_origin": 6,
+          "model": {
+            "empirical_interval_coverage": 0.9166666666666666,
+            "interval_half_width": 1.9119343181388064,
+            "mae": 0.8238270438812167,
+            "rmse": 1.0836674933702792,
+            "rows": 120
+          },
+          "natural_policy_mixture": "PLANNED_NOT_IMPLEMENTED",
+          "persistence_y_t": {
+            "empirical_interval_coverage": 0.95,
+            "interval_half_width": 3.39584195945994,
+            "mae": 1.5542336067511413,
+            "rmse": 1.9318764926312944,
+            "rows": 120
+          }
+        },
+        "seed": 20261221
+      }
+    ],
+    "schema_version": "synthetic-research-v1",
+    "summary": {
+      "adjusted_g_computation": {
+        "bias": -0.013461586186183228,
+        "empirical_ci_coverage": null,
+        "requested_replications": 10,
+        "rmse": 0.07421410815959262,
+        "valid_replications": 10
+      },
+      "association_only": {
+        "bias": 0.622056324765023,
+        "empirical_ci_coverage": null,
+        "requested_replications": 10,
+        "rmse": 0.7055572171412406,
+        "valid_replications": 10
+      },
+      "coverage_denominator": "VALID_REPLICATIONS_ONLY; inspect refusals",
+      "estimated_propensity_aipw": {
+        "bias": -0.019383923888601995,
+        "empirical_ci_coverage": 1.0,
+        "requested_replications": 10,
+        "rmse": 0.1406884014652466,
+        "valid_replications": 10
+      }
+    }
+  },
+  "not_tested": [
+    "hidden_new_confounder",
+    "outcome_dependent_censoring",
+    "structural_support_holes",
+    "full_scoring_correction_replay",
+    "real_world_data",
+    "long_term_policy_value"
+  ],
+  "regression_ablation": {
+    "add_independent_noise": {
+      "bias_vs_synthetic_truth": 0.0251045442664095,
+      "replications": 20,
+      "rmse_vs_synthetic_truth": 0.08981940475615556
+    },
+    "full_adjustment": {
+      "bias_vs_synthetic_truth": 0.025586081885199265,
+      "replications": 20,
+      "rmse_vs_synthetic_truth": 0.08807818879563824
+    },
+    "omit_x_not_identified": {
+      "bias_vs_synthetic_truth": 0.6913320917709194,
+      "replications": 20,
+      "rmse_vs_synthetic_truth": 0.6991476304001742
+    }
+  },
+  "schema_version": "synthetic-sensitivity-v1",
+  "study_type": "EXPLORATORY_NOT_PREREGISTERED_CONFIRMATORY"
+}
