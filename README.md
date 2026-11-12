@@ -9,6 +9,17 @@
 - [一手资料与查阅范围](docs/references.md)
 - [实际执行的实验与审查](docs/executed-validation.md)
 - [参与研究与提交提案](CONTRIBUTING.md)
+- [因果事件分镜 MVP](docs/storyboard-mvp.md)：文本规则解析、事件图、时间片段、逐镜提示词及可选图像适配器；分镜静帧不等于连续视频。
+
+## 文本生成分镜
+
+只用 Python 3.12+ 标准库，无需模型或 NumPy：
+
+```powershell
+python -B experiments/run_storyboard.py --text "一个男孩踢了一下足球，足球滚向桌子并撞倒了桌上的水杯。" --output storyboard-output
+```
+
+默认6秒、3镜头，独占创建新输出目录。离线不会生成图片或虚假路径；配置 `STORYBOARD_IMAGE_URL`、`STORYBOARD_IMAGE_MODEL`、`STORYBOARD_IMAGE_KEY` 并显式加 `--generate-images` 才发起图像请求。有限规则不覆盖通用中文；空间补全、运行边界和[完整代码](docs/storyboard-source.md)均见说明。
 
 ## 运行首版原型
 

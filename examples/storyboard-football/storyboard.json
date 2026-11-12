@@ -1,0 +1,490 @@
+{
+  "schema_version": "1.0",
+  "input_text": "一个男孩踢了一下足球，足球滚向桌子并撞倒了桌上的水杯。",
+  "duration_s": 6.0,
+  "overall_scene_description": "一个男孩踢了一下足球，足球滚向桌子并撞倒了桌上的水杯。 统一空间和外观：固定中性示意场景；原文外观优先，未指明部分简洁无图案。原文未给尺寸：采用约12厘米低桌、半径11厘米足球；杯底半径4厘米，前沿外伸2厘米且大部分受桌面支撑；被推倒后仍留在桌面",
+  "modeling_scope": "RULE/TEXT 事件模型：显式文本、常识假设与未知分开；时间先后不自动构成因果；不作严格因果效应推断",
+  "scene": {
+    "entities": [
+      {
+        "id": "boy",
+        "label": "一个男孩",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "一个男孩",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "ball",
+        "label": "足球",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "足球",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "table",
+        "label": "桌子",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "桌子",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "cup",
+        "label": "水杯",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "水杯",
+          "explanation": ""
+        }
+      }
+    ],
+    "world": {
+      "setting": "unspecified",
+      "ground": "同一平整地面",
+      "ball_radius_cm": 11,
+      "tabletop_height_cm": 12,
+      "cup_base_radius_cm": 4,
+      "cup_front_overhang_cm": 2,
+      "geometry_basis": "commonsense_assumption",
+      "contact_constraint": "球沿无遮挡地面直接接触低桌前沿外伸的杯身；接触发生在桌缘阻挡之前，球不穿过桌体"
+    },
+    "initial_state": {
+      "boy.action": "ready_to_kick",
+      "ball.motion": "stationary",
+      "ball.location": "ground_before_table",
+      "table.support": "stable",
+      "cup.pose": "upright",
+      "cup.location": "tabletop_front_edge",
+      "cup.contact": "none"
+    },
+    "assumptions": [
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "原文未给尺寸：采用约12厘米低桌、半径11厘米足球；杯底半径4厘米，前沿外伸2厘米且大部分受桌面支撑；被推倒后仍留在桌面"
+      }
+    ],
+    "continuity": {
+      "source": "continuity_design",
+      "design": "固定中性示意场景；原文外观优先，未指明部分简洁无图案",
+      "constraints": [
+        "实体身份和已给外观跨镜不变",
+        "采用同一世界坐标与支撑面",
+        "状态只能在对应事件阶段变化",
+        "同一 occurrence_id 不表示重复发生"
+      ]
+    }
+  },
+  "events": [
+    {
+      "id": "e1",
+      "kind": "kick",
+      "label": "男孩踢一次足球",
+      "participants": [
+        "boy",
+        "ball"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "一个男孩踢",
+        "explanation": ""
+      },
+      "preconditions": {
+        "boy.action": "ready_to_kick",
+        "ball.motion": "stationary"
+      },
+      "updates": {
+        "boy.action": "after_kick",
+        "ball.motion": "rolling"
+      },
+      "active_state": {
+        "boy.action": "kicking"
+      },
+      "keyframes": {
+        "before": "脚将接触静止足球",
+        "during": "脚与足球接触的一瞬",
+        "after": "球刚离脚，男孩保持踢后的姿态"
+      }
+    },
+    {
+      "id": "e2",
+      "kind": "roll",
+      "label": "同一足球沿地面滚向桌前杯子",
+      "participants": [
+        "ball",
+        "table"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "足球滚向桌子",
+        "explanation": ""
+      },
+      "preconditions": {
+        "ball.motion": "rolling"
+      },
+      "updates": {
+        "ball.location": "within_cup_reach"
+      },
+      "active_state": {
+        "ball.location": "approaching_cup"
+      },
+      "keyframes": {
+        "before": "球已离脚，杯子直立",
+        "during": "球在无遮挡地面上接近低桌前沿，尚未接触杯子",
+        "after": "球抵达外伸杯身之前，杯子仍直立"
+      }
+    },
+    {
+      "id": "e3",
+      "kind": "contact",
+      "label": "足球接触前沿外伸杯身",
+      "participants": [
+        "ball",
+        "cup"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "撞倒",
+        "explanation": ""
+      },
+      "preconditions": {
+        "ball.location": "within_cup_reach",
+        "cup.pose": "upright"
+      },
+      "updates": {
+        "ball.location": "cup_contact_before_table",
+        "ball.motion": "contact_motion_unspecified",
+        "cup.contact": "ball"
+      },
+      "active_state": {
+        "ball.location": "cup_contact_before_table",
+        "ball.motion": "contact_motion_unspecified",
+        "cup.contact": "ball"
+      },
+      "keyframes": {
+        "before": "球与杯身之间尚有微小间距",
+        "during": "球刚接触外伸杯身，杯子尚未倾倒，接触点在桌缘阻挡之前",
+        "after": "球接触杯身，杯子尚未倾倒，球仍在桌体之外"
+      }
+    },
+    {
+      "id": "e4",
+      "kind": "tip",
+      "label": "同一水杯向桌面内侧倾倒并留在桌上",
+      "participants": [
+        "cup"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "撞倒",
+        "explanation": ""
+      },
+      "preconditions": {
+        "cup.contact": "ball",
+        "cup.pose": "upright"
+      },
+      "updates": {
+        "cup.pose": "tipped_on_table",
+        "cup.contact": "unspecified_after_tip"
+      },
+      "active_state": {
+        "cup.pose": "tilting_inward"
+      },
+      "keyframes": {
+        "before": "杯子受球接触，开始失去直立平衡",
+        "during": "杯子向桌面内侧倾斜，仍与桌面接触",
+        "after": "杯子侧倒且仍留在桌面，足球在桌体外的接触位置"
+      }
+    }
+  ],
+  "temporal_relations": [
+    {
+      "source": "e1",
+      "target": "e2",
+      "relation": "before",
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "按动作阶段展开的时间安排"
+      }
+    },
+    {
+      "source": "e2",
+      "target": "e3",
+      "relation": "before",
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "按动作阶段展开的时间安排"
+      }
+    },
+    {
+      "source": "e3",
+      "target": "e4",
+      "relation": "before",
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "按动作阶段展开的时间安排"
+      }
+    }
+  ],
+  "causal_relations": [
+    {
+      "source": "e1",
+      "target": "e2",
+      "relation": "causes",
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "踢球后球滚动是规则补充，原文没有显式因果连接词"
+      }
+    },
+    {
+      "source": "e2",
+      "target": "e3",
+      "relation": "enables",
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "沿无遮挡路径接近杯身是接触的空间前提，不是充分原因"
+      }
+    },
+    {
+      "source": "e3",
+      "target": "e4",
+      "relation": "causes",
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "撞倒",
+        "explanation": "结果补语明确绑定碰撞与倾倒"
+      }
+    }
+  ],
+  "unresolved_causal_relations": [],
+  "timeline": [
+    {
+      "event_id": "e1",
+      "start_s": 0.0,
+      "end_s": 2.0
+    },
+    {
+      "event_id": "e2",
+      "start_s": 2.0,
+      "end_s": 4.0
+    },
+    {
+      "event_id": "e3",
+      "start_s": 4.0,
+      "end_s": 5.0
+    },
+    {
+      "event_id": "e4",
+      "start_s": 5.0,
+      "end_s": 6.0
+    }
+  ],
+  "shots": [
+    {
+      "id": "s01",
+      "start_s": 0.0,
+      "end_s": 2.0,
+      "event_ids": [
+        "e1"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e1",
+          "occurrence_id": "e1",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：男孩踢一次足球",
+      "start_state": {
+        "boy.action": "ready_to_kick",
+        "ball.motion": "stationary",
+        "ball.location": "ground_before_table",
+        "table.support": "stable",
+        "cup.pose": "upright",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "none"
+      },
+      "end_state": {
+        "boy.action": "after_kick",
+        "ball.motion": "rolling",
+        "ball.location": "ground_before_table",
+        "table.support": "stable",
+        "cup.pose": "upright",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "none"
+      },
+      "keyframe": {
+        "time_s": 2.0,
+        "event_id": "e1",
+        "phase": "after",
+        "state": {
+          "boy.action": "after_kick",
+          "ball.motion": "rolling",
+          "ball.location": "ground_before_table",
+          "table.support": "stable",
+          "cup.pose": "upright",
+          "cup.location": "tabletop_front_edge",
+          "cup.contact": "none"
+        }
+      },
+      "presentation": {
+        "shot_size": "全景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['一个男孩', '足球', '桌子', '水杯']。连续性设计：{'source': 'continuity_design', 'design': '固定中性示意场景；原文外观优先，未指明部分简洁无图案', 'constraints': ['实体身份和已给外观跨镜不变', '采用同一世界坐标与支撑面', '状态只能在对应事件阶段变化', '同一 occurrence_id 不表示重复发生']}。世界空间约束：{'setting': 'unspecified', 'ground': '同一平整地面', 'ball_radius_cm': 11, 'tabletop_height_cm': 12, 'cup_base_radius_cm': 4, 'cup_front_overhang_cm': 2, 'geometry_basis': 'commonsense_assumption', 'contact_constraint': '球沿无遮挡地面直接接触低桌前沿外伸的杯身；接触发生在桌缘阻挡之前，球不穿过桌体'}。只画一个具体瞬间：球刚离脚，男孩保持踢后的姿态。该瞬间完整状态：{'boy.action': 'after_kick', 'ball.motion': 'rolling', 'ball.location': 'ground_before_table', 'table.support': 'stable', 'cup.pose': 'upright', 'cup.location': 'tabletop_front_edge', 'cup.contact': 'none'}。摄影设计：{'shot_size': '全景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    },
+    {
+      "id": "s02",
+      "start_s": 2.0,
+      "end_s": 4.0,
+      "event_ids": [
+        "e2"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e2",
+          "occurrence_id": "e2",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：同一足球沿地面滚向桌前杯子",
+      "start_state": {
+        "boy.action": "after_kick",
+        "ball.motion": "rolling",
+        "ball.location": "ground_before_table",
+        "table.support": "stable",
+        "cup.pose": "upright",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "none"
+      },
+      "end_state": {
+        "boy.action": "after_kick",
+        "ball.motion": "rolling",
+        "ball.location": "within_cup_reach",
+        "table.support": "stable",
+        "cup.pose": "upright",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "none"
+      },
+      "keyframe": {
+        "time_s": 4.0,
+        "event_id": "e2",
+        "phase": "after",
+        "state": {
+          "boy.action": "after_kick",
+          "ball.motion": "rolling",
+          "ball.location": "within_cup_reach",
+          "table.support": "stable",
+          "cup.pose": "upright",
+          "cup.location": "tabletop_front_edge",
+          "cup.contact": "none"
+        }
+      },
+      "presentation": {
+        "shot_size": "中景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['一个男孩', '足球', '桌子', '水杯']。连续性设计：{'source': 'continuity_design', 'design': '固定中性示意场景；原文外观优先，未指明部分简洁无图案', 'constraints': ['实体身份和已给外观跨镜不变', '采用同一世界坐标与支撑面', '状态只能在对应事件阶段变化', '同一 occurrence_id 不表示重复发生']}。世界空间约束：{'setting': 'unspecified', 'ground': '同一平整地面', 'ball_radius_cm': 11, 'tabletop_height_cm': 12, 'cup_base_radius_cm': 4, 'cup_front_overhang_cm': 2, 'geometry_basis': 'commonsense_assumption', 'contact_constraint': '球沿无遮挡地面直接接触低桌前沿外伸的杯身；接触发生在桌缘阻挡之前，球不穿过桌体'}。只画一个具体瞬间：球抵达外伸杯身之前，杯子仍直立。该瞬间完整状态：{'boy.action': 'after_kick', 'ball.motion': 'rolling', 'ball.location': 'within_cup_reach', 'table.support': 'stable', 'cup.pose': 'upright', 'cup.location': 'tabletop_front_edge', 'cup.contact': 'none'}。摄影设计：{'shot_size': '中景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    },
+    {
+      "id": "s03",
+      "start_s": 4.0,
+      "end_s": 6.0,
+      "event_ids": [
+        "e3",
+        "e4"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e3",
+          "occurrence_id": "e3",
+          "stage": "whole"
+        },
+        {
+          "event_id": "e4",
+          "occurrence_id": "e4",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：足球接触前沿外伸杯身；同一水杯向桌面内侧倾倒并留在桌上",
+      "start_state": {
+        "boy.action": "after_kick",
+        "ball.motion": "rolling",
+        "ball.location": "within_cup_reach",
+        "table.support": "stable",
+        "cup.pose": "upright",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "none"
+      },
+      "end_state": {
+        "boy.action": "after_kick",
+        "ball.motion": "contact_motion_unspecified",
+        "ball.location": "cup_contact_before_table",
+        "table.support": "stable",
+        "cup.pose": "tipped_on_table",
+        "cup.location": "tabletop_front_edge",
+        "cup.contact": "unspecified_after_tip"
+      },
+      "keyframe": {
+        "time_s": 6.0,
+        "event_id": "e4",
+        "phase": "after",
+        "state": {
+          "boy.action": "after_kick",
+          "ball.motion": "contact_motion_unspecified",
+          "ball.location": "cup_contact_before_table",
+          "table.support": "stable",
+          "cup.pose": "tipped_on_table",
+          "cup.location": "tabletop_front_edge",
+          "cup.contact": "unspecified_after_tip"
+        }
+      },
+      "presentation": {
+        "shot_size": "中景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['一个男孩', '足球', '桌子', '水杯']。连续性设计：{'source': 'continuity_design', 'design': '固定中性示意场景；原文外观优先，未指明部分简洁无图案', 'constraints': ['实体身份和已给外观跨镜不变', '采用同一世界坐标与支撑面', '状态只能在对应事件阶段变化', '同一 occurrence_id 不表示重复发生']}。世界空间约束：{'setting': 'unspecified', 'ground': '同一平整地面', 'ball_radius_cm': 11, 'tabletop_height_cm': 12, 'cup_base_radius_cm': 4, 'cup_front_overhang_cm': 2, 'geometry_basis': 'commonsense_assumption', 'contact_constraint': '球沿无遮挡地面直接接触低桌前沿外伸的杯身；接触发生在桌缘阻挡之前，球不穿过桌体'}。只画一个具体瞬间：杯子侧倒且仍留在桌面，足球在桌体外的接触位置。该瞬间完整状态：{'boy.action': 'after_kick', 'ball.motion': 'contact_motion_unspecified', 'ball.location': 'cup_contact_before_table', 'table.support': 'stable', 'cup.pose': 'tipped_on_table', 'cup.location': 'tabletop_front_edge', 'cup.contact': 'unspecified_after_tip'}。摄影设计：{'shot_size': '中景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    }
+  ],
+  "generation_kind": "STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO"
+}
