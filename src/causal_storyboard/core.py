@@ -6,6 +6,9 @@ import json
 import re
 from typing import Protocol
 
+from .element_parser import parse_element_scene
+from .world import compile_element_scene, validate_element_scene
+
 DEFAULT_STYLE = "简洁写实的连续性故事板，主体与场景外观保持一致"  # 默认呈现设计，不属于原文事实。
 _BASES = {"explicit_text", "commonsense_assumption", "unknown"}  # 世界判断允许的证据来源。
 _CLOTHING = r"(?:穿(?:红色|蓝色|白色|黑色|黄色|绿色|红|蓝|白|黑|黄|绿)?(?:上衣|外套|T恤|短袖|衬衫|球衣|衣服|衣)的)?"  # 有限衣着词法，不允许吞入其他角色和动词。
@@ -36,7 +39,7 @@ def _event(identifier: str, kind: str, label: str, participants: list,
 
 
 class RuleSceneParser:
-    """有限中文语法：踢球撞倒杯子、男孩跑步、猫坐窗边及两个独立分句。"""
+    """有限中文语法：环境与器物动作，以及兼容原有踢球、跑步、猫坐窗边句型。"""
 
     # 拒绝否定、条件、推测以及未建模语法，避免把文本反向解释成肯定事件。
     def parse(self, text: str) -> dict:
@@ -45,6 +48,11 @@ class RuleSceneParser:
         text = text.strip()  # 保留完整原文；只有匹配时去掉两端空白。
         if re.search(r"没有|没|不|未|别|并非|如果|假如|除非|若|可能|也许|是否|[?？]", text):
             raise ValueError("parse_error: 当前规则不支持否定、条件、推测或疑问句")
+        element_scene = parse_element_scene(text)  # 环境语法必须先登记全部元素，再让世界引擎编译动作。
+        if element_scene is not None:
+            element_scene = compile_element_scene(element_scene)
+            validate_scene(element_scene)
+            return element_scene
         scene = {  # A 层场景事实与状态；B 层摄影参数由分镜规划器另行生成。
             "input_text": text, "entities": [], "world": {"setting": "unspecified"},
             "initial_state": {}, "assumptions": [],
@@ -208,6 +216,8 @@ def validate_scene(scene: dict) -> None:
         event_ids.add(event["id"])
         if not isinstance(event.get("label"), str) or not isinstance(event.get("kind"), str) or not isinstance(event.get("participants"), list) or not event["participants"] or any(not isinstance(participant, str) or participant not in identifiers for participant in event["participants"]):
             raise ValueError("scene_error: event label / kind / participants 无效")
+        if event["kind"] in ("open_door", "close_door", "enter_room", "pick_up", "place_on", "move_object") and "element_model" not in scene:
+            raise ValueError("scene_error: 环境器物动作必须声明 element_model 并通过世界编译校验")
         _check_evidence(event.get("evidence"), text)
         for key in ("preconditions", "updates", "active_state"):  # 活动状态只用于该事件进行期间的连续帧。
             if not isinstance(event.get(key), dict):
@@ -255,6 +265,8 @@ def validate_scene(scene: dict) -> None:
         if any(key not in current or current[key] != value for key, value in event["preconditions"].items()):
             raise ValueError(f"scene_error: {event['id']} 前置状态不成立，可能引用未来动作结果")
         state.update(event["updates"])
+    if "element_model" in scene:
+        validate_element_scene(scene)  # 结构化新模型同样校验位置、关系传播和动作篡改。
 
 
 # 在指定微观时刻计算全场景状态；结果只包含已完成更新及正在进行的阶段状态。
@@ -329,6 +341,10 @@ def build_storyboard(text: str, duration: float = 6, shots: int = 3,
                   f"世界空间约束：{parsed['world']}。只画一个具体瞬间：{key['event']['keyframes'][phase]}。"
                   f"该瞬间完整状态：{state}。摄影设计：{presentation}。"
                   "原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。")
+        if "element_model" in parsed:
+            prompt += (f"元素身份登记：{[(entity['id'], entity['kind'], entity['label']) for entity in parsed['entities']]}。"
+                       "器物相对支撑、固定、手持关系和派生全局位置以该瞬间完整状态为准；初始关系仅描述初态，不能覆盖拿起或放下后的关系。"
+                       "没有直接效果或关系传播的元素保持原位置、姿态与身份；人物动作不自动使墙画等器物移动。")
         planned.append({
             "id": f"s{index + 1:02d}", "start_s": float(start), "end_s": float(end),
             "event_ids": [entry["event"]["id"] for entry in covered], "event_refs": refs,
@@ -337,13 +353,15 @@ def build_storyboard(text: str, duration: float = 6, shots: int = 3,
             "presentation": presentation, "image_prompt": prompt, "image": {"status": "not_requested", "path": None},
         })
     return {
-        "schema_version": "1.0", "input_text": text, "duration_s": float(total),
+        "schema_version": "1.1", "input_text": text, "duration_s": float(total),
         "overall_scene_description": text.strip() + " 统一空间和外观：" + str(parsed["continuity"].get("design", "保持已声明实体属性"))
                                      + "。" + "；".join(item.get("explanation", "") for item in parsed["assumptions"]),
         "modeling_scope": "RULE/TEXT 事件模型：显式文本、常识假设与未知分开；时间先后不自动构成因果；不作严格因果效应推断",
-        "scene": {key: parsed[key] for key in ("entities", "world", "initial_state", "assumptions", "continuity")},
+        "scene": {key: parsed[key] for key in ("entities", "world", "initial_state", "assumptions", "continuity", "element_model") if key in parsed},
         "events": events, "temporal_relations": parsed["temporal_relations"], "causal_relations": parsed["causal_relations"],
         "unresolved_causal_relations": parsed.get("unresolved_causal_relations", []),
+        **({"element_trace": parsed["element_trace"]} if "element_trace" in parsed else {}),
+        **({"state_dependencies": parsed["state_dependencies"]} if "state_dependencies" in parsed else {}),
         "timeline": [{"event_id": entry["event"]["id"], "start_s": float(entry["_start"]), "end_s": float(entry["_end"])} for entry in timeline],
         "shots": planned,
     }

@@ -10,8 +10,10 @@
 """可替换解析器的纯 Python 事件分镜入口；导入不执行模型请求或文件操作。"""
 
 from .core import DEFAULT_STYLE, RuleSceneParser, SceneParser, build_storyboard, validate_scene
+from .element_parser import parse_element_scene
+from .world import compile_element_scene, validate_element_scene
 
-__all__ = ["DEFAULT_STYLE", "RuleSceneParser", "SceneParser", "build_storyboard", "validate_scene"]  # 对外稳定入口。
+__all__ = ["DEFAULT_STYLE", "RuleSceneParser", "SceneParser", "build_storyboard", "validate_scene", "parse_element_scene", "compile_element_scene", "validate_element_scene"]  # 对外稳定入口。
 ```
 
 ## src/causal_storyboard/core.py
@@ -24,6 +26,9 @@ from decimal import Decimal, InvalidOperation
 import json
 import re
 from typing import Protocol
+
+from .element_parser import parse_element_scene
+from .world import compile_element_scene, validate_element_scene
 
 DEFAULT_STYLE = "简洁写实的连续性故事板，主体与场景外观保持一致"  # 默认呈现设计，不属于原文事实。
 _BASES = {"explicit_text", "commonsense_assumption", "unknown"}  # 世界判断允许的证据来源。
@@ -55,7 +60,7 @@ def _event(identifier: str, kind: str, label: str, participants: list,
 
 
 class RuleSceneParser:
-    """有限中文语法：踢球撞倒杯子、男孩跑步、猫坐窗边及两个独立分句。"""
+    """有限中文语法：环境与器物动作，以及兼容原有踢球、跑步、猫坐窗边句型。"""
 
     # 拒绝否定、条件、推测以及未建模语法，避免把文本反向解释成肯定事件。
     def parse(self, text: str) -> dict:
@@ -64,6 +69,11 @@ class RuleSceneParser:
         text = text.strip()  # 保留完整原文；只有匹配时去掉两端空白。
         if re.search(r"没有|没|不|未|别|并非|如果|假如|除非|若|可能|也许|是否|[?？]", text):
             raise ValueError("parse_error: 当前规则不支持否定、条件、推测或疑问句")
+        element_scene = parse_element_scene(text)  # 环境语法必须先登记全部元素，再让世界引擎编译动作。
+        if element_scene is not None:
+            element_scene = compile_element_scene(element_scene)
+            validate_scene(element_scene)
+            return element_scene
         scene = {  # A 层场景事实与状态；B 层摄影参数由分镜规划器另行生成。
             "input_text": text, "entities": [], "world": {"setting": "unspecified"},
             "initial_state": {}, "assumptions": [],
@@ -227,6 +237,8 @@ def validate_scene(scene: dict) -> None:
         event_ids.add(event["id"])
         if not isinstance(event.get("label"), str) or not isinstance(event.get("kind"), str) or not isinstance(event.get("participants"), list) or not event["participants"] or any(not isinstance(participant, str) or participant not in identifiers for participant in event["participants"]):
             raise ValueError("scene_error: event label / kind / participants 无效")
+        if event["kind"] in ("open_door", "close_door", "enter_room", "pick_up", "place_on", "move_object") and "element_model" not in scene:
+            raise ValueError("scene_error: 环境器物动作必须声明 element_model 并通过世界编译校验")
         _check_evidence(event.get("evidence"), text)
         for key in ("preconditions", "updates", "active_state"):  # 活动状态只用于该事件进行期间的连续帧。
             if not isinstance(event.get(key), dict):
@@ -274,6 +286,8 @@ def validate_scene(scene: dict) -> None:
         if any(key not in current or current[key] != value for key, value in event["preconditions"].items()):
             raise ValueError(f"scene_error: {event['id']} 前置状态不成立，可能引用未来动作结果")
         state.update(event["updates"])
+    if "element_model" in scene:
+        validate_element_scene(scene)  # 结构化新模型同样校验位置、关系传播和动作篡改。
 
 
 # 在指定微观时刻计算全场景状态；结果只包含已完成更新及正在进行的阶段状态。
@@ -348,6 +362,10 @@ def build_storyboard(text: str, duration: float = 6, shots: int = 3,
                   f"世界空间约束：{parsed['world']}。只画一个具体瞬间：{key['event']['keyframes'][phase]}。"
                   f"该瞬间完整状态：{state}。摄影设计：{presentation}。"
                   "原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。")
+        if "element_model" in parsed:
+            prompt += (f"元素身份登记：{[(entity['id'], entity['kind'], entity['label']) for entity in parsed['entities']]}。"
+                       "器物相对支撑、固定、手持关系和派生全局位置以该瞬间完整状态为准；初始关系仅描述初态，不能覆盖拿起或放下后的关系。"
+                       "没有直接效果或关系传播的元素保持原位置、姿态与身份；人物动作不自动使墙画等器物移动。")
         planned.append({
             "id": f"s{index + 1:02d}", "start_s": float(start), "end_s": float(end),
             "event_ids": [entry["event"]["id"] for entry in covered], "event_refs": refs,
@@ -356,16 +374,924 @@ def build_storyboard(text: str, duration: float = 6, shots: int = 3,
             "presentation": presentation, "image_prompt": prompt, "image": {"status": "not_requested", "path": None},
         })
     return {
-        "schema_version": "1.0", "input_text": text, "duration_s": float(total),
+        "schema_version": "1.1", "input_text": text, "duration_s": float(total),
         "overall_scene_description": text.strip() + " 统一空间和外观：" + str(parsed["continuity"].get("design", "保持已声明实体属性"))
                                      + "。" + "；".join(item.get("explanation", "") for item in parsed["assumptions"]),
         "modeling_scope": "RULE/TEXT 事件模型：显式文本、常识假设与未知分开；时间先后不自动构成因果；不作严格因果效应推断",
-        "scene": {key: parsed[key] for key in ("entities", "world", "initial_state", "assumptions", "continuity")},
+        "scene": {key: parsed[key] for key in ("entities", "world", "initial_state", "assumptions", "continuity", "element_model") if key in parsed},
         "events": events, "temporal_relations": parsed["temporal_relations"], "causal_relations": parsed["causal_relations"],
         "unresolved_causal_relations": parsed.get("unresolved_causal_relations", []),
+        **({"element_trace": parsed["element_trace"]} if "element_trace" in parsed else {}),
+        **({"state_dependencies": parsed["state_dependencies"]} if "state_dependencies" in parsed else {}),
         "timeline": [{"event_id": entry["event"]["id"], "start_s": float(entry["_start"]), "end_s": float(entry["_end"])} for entry in timeline],
         "shots": planned,
     }
+```
+
+## src/causal_storyboard/element_parser.py
+
+```python
+"""先登记环境与器物，再生成单人物动作骨架；这里只支持逐句完整匹配的有限中文语法。"""
+
+import re
+
+_SETTINGS = {"房间": "room", "屋子": "room", "房子": "house"}  # 同义场景归入同一实体类型。
+_NOUNS = {"门": "door", "桌子": "table", "桌": "table", "水杯": "cup", "杯子": "cup",
+          "画": "painting", "箱子": "box", "窗户": "window", "椅子": "chair", "墙": "wall"}  # 封闭器物词表。
+_LABELS = {"door": "门", "table": "桌子", "cup": "水杯", "painting": "画", "box": "箱子",
+           "window": "窗户", "chair": "椅子", "wall": "墙"}  # 标签只表示身份，不包含未来动作。
+_PERSONS = {"男孩": "boy", "女孩": "girl", "人": "person"}  # 文本入口只允许一个人物身份。
+_POSITIONS = {"左侧": "left", "右侧": "right", "中间": "center", "中央": "center"}  # 符号位置并非测量坐标。
+_NEW_SYNTAX = r"门|房间|房子|屋子|墙|挂画|箱子|窗户|椅子|拿起|放回|放到|移到|移动"  # 不截获旧足球与猫窗边语法。
+
+
+# 构造可回溯证据；假设没有伪造的原文引文。
+def _evidence(basis: str, quote: str = "", explanation: str = "") -> dict:
+    return {"basis": basis, "quote": quote, "explanation": explanation}
+
+
+# 识别静态声明；所有剩余文本都必须由具体产生式完整消费。
+def _declaration(clause: str) -> dict | None:
+    body = clause  # 剥离场景前缀后仍需完整匹配器物声明。
+    setting = None  # 没有场景名时后续只创建抽象空间。
+    prefix = re.match(r"(房间|屋子|房子)(?:里|内)有", body)  # 有限场景声明前缀。
+    if prefix:
+        setting, body = prefix[1], body[prefix.end():]
+    elif body.startswith("有"):
+        body = body[1:]
+    record = {"type": "declaration", "setting": setting, "quote": clause}  # 静态语法记录，不执行动作。
+    match = re.fullmatch(r"(?:一扇)?(?:(关闭|关上|打开|锁上|上锁)的)?门", body)  # 门状态是初始声明。
+    if match and (prefix or clause.startswith("有") or match[1]):
+        record.update(kind="door", introduces=True)
+        if match[1]:
+            record["door_state"] = match[1]
+        return record
+    match = re.fullmatch(r"门(?:是)?(关闭|关上|打开|锁上|上锁)(?:的|着)?", body)  # 单独补充门初态。
+    if match:
+        record.update(kind="door", door_state=match[1])
+        return record
+    match = re.fullmatch(r"(?:一张)?桌子|(?:一个|一只)?(?:水杯|杯子|箱子)|(?:一扇)?窗户|(?:一把|一张)?椅子", body)  # 房间中列出的普通器物。
+    if match and (prefix or clause.startswith("有")):
+        noun = re.sub(r"^(?:一张|一个|一只|一扇|一把)", "", body)  # 数量词不属于身份标签。
+        record.update(kind=_NOUNS[noun], introduces=True)
+        return record
+    match = re.fullmatch(r"桌(?:子)?上(?:放着|有)(?:一个|一只)?(水杯|杯子|箱子)", body)  # 支撑关系来自原文。
+    if match:
+        record.update(kind=_NOUNS[match[1]], supported_by="table", introduces=True)
+        return record
+    if re.fullmatch(r"墙上(?:挂着|挂有)(?:一幅)?画", body):
+        record.update(kind="painting", attached_to="wall", introduces=True)
+        return record
+    match = re.fullmatch(r"(桌子|箱子)(?:在|位于)(房间|屋子|房子)?(左侧|右侧|中间|中央)", body)  # 明确位置只改变所述器物。
+    if match:
+        record.update(kind=_NOUNS[match[1]], setting=match[2] or setting, position=_POSITIONS[match[3]])
+        return record
+    return None
+
+
+# 将一个人物动作完整编译为骨架，前置条件和传播由世界引擎负责。
+def _action(clause: str) -> dict:
+    body = clause  # 主语以外的整段必须是已支持的动作。
+    connector = ""  # 只记录时间词，绝不将它提升为因果边。
+    prefix = re.match(r"然后|随后|接着|再", body)  # 当前元素语法只支持顺序动作。
+    if prefix:
+        connector, body = prefix[0], body[prefix.end():]
+    subject = re.match(r"(?:(一个|一名)?(男孩|女孩|人)|(他|她))", body)  # 代词只引用此前出现的唯一人物。
+    person = subject[2] if subject and subject[2] else None  # 显式人物种类。
+    pronoun = subject[3] if subject else None  # 后续需检查代词与人物一致。
+    introduced = bool(subject and subject[1])  # 再次量化引入人物会产生身份歧义。
+    if subject:
+        body = body[subject.end():]
+    record = {"type": "action", "quote": clause, "connector": connector,
+              "person": person, "pronoun": pronoun, "introduced": introduced}  # 保留原句用于审计。
+    match = re.fullmatch(r"(打开|关闭|关上)(?:了)?(?:一扇)?门", body)  # 不允许把尝试、否定或附加行为吞入匹配。
+    if match:
+        record.update(kind="open_door" if match[1] == "打开" else "close_door", target="door")
+        return record
+    match = re.fullmatch(r"走进(?:了)?(房间|屋子|房子)", body)  # 进门必须拥有真实入口门。
+    if match:
+        record.update(kind="enter_room", target="door", setting=match[1])
+        return record
+    match = re.fullmatch(r"拿起(?:了)?(桌(?:子)?上(?:的)?)?(?:一个|一只)?(水杯|杯子|箱子)", body)  # 拿起不会提前把结果放入初态。
+    if match:
+        record.update(kind="pick_up", target=_NOUNS[match[2]], supported_by="table" if match[1] else None)
+        return record
+    if re.fullmatch(r"拿起(?:了)?(?:墙上(?:的)?)?(?:一幅)?画", body):
+        raise ValueError("parse_error: 当前模型不支持拿起画；墙上挂画具有固定关系")
+    match = re.fullmatch(r"(?:把)?(水杯|杯子|箱子)放(?:回|到)(?:了)?(桌(?:子)?|箱子)上", body)  # 放置必须由世界引擎核验手持前置。
+    if match:
+        record.update(kind="place_on", target=_NOUNS[match[1]], destination=_NOUNS[match[2]])
+        return record
+    match = re.fullmatch(r"(平稳地?|准静态地?)?(?:把)?(桌子|箱子)移到(房间|屋子|房子)?(左侧|右侧|中间|中央)", body)  # 只支持同一场景内的符号平移。
+    if match:
+        if not match[1]:
+            raise ValueError("parse_error: 移动桌子或箱子必须明确写出平稳或准静态方式")
+        record.update(kind="move_object", target=_NOUNS[match[2]], setting=match[3], position=_POSITIONS[match[4]])
+        return record
+    raise ValueError(f"parse_error: 不支持的环境或动作分句：{clause}")
+
+
+# 新语法不适用时返回 None；适用后任何残句、身份冲突或缺少入口都明确报错。
+def parse_element_scene(text: str) -> dict | None:
+    if not isinstance(text, str) or not text.strip() or len(text) > 4000:
+        raise ValueError("parse_error: text 必须是 1 至 4000 字符的非空字符串")
+    text = text.strip()  # 原文保留在输出中，所有显式证据均指向该字符串。
+    if not re.search(_NEW_SYNTAX, text):
+        return None
+    if re.search(r"没有|没|不|未|别|并非|如果|假如|除非|若|可能|也许|是否|[?？]", text):
+        raise ValueError("parse_error: 当前规则不支持否定、条件、推测或疑问句")
+    clauses = re.split(r"[，,。.!！；;]", text)  # 标点只分句，不推导物理影响。
+    if not clauses[-1].strip():
+        clauses.pop()
+    if not clauses or any(not clause.strip() for clause in clauses):
+        raise ValueError("parse_error: 环境文本存在空分句或重复分隔符")
+    records = []  # 第一遍只识别语法，尚不构造人物或动作状态。
+    seen_action = False  # 动作后的静态描述不能倒灌为动作前的事实。
+    for clause in clauses:
+        clause = clause.strip()  # 两端空白不参与词法匹配。
+        declaration = _declaration(clause)  # 静态声明优先识别。
+        if declaration is not None and seen_action:
+            raise ValueError("parse_error: 初始环境声明必须位于动作之前，不能把动作后的描述写入初态")
+        seen_action = seen_action or declaration is None
+        records.append(declaration if declaration is not None else _action(clause))
+    scene = {
+        "input_text": text, "entities": [], "world": {"setting": "unspecified"},
+        "initial_state": {}, "assumptions": [],
+        "continuity": {"source": "continuity_design", "design": "已登记环境与器物身份固定；未说明外观保持简洁中性",
+                       "constraints": ["先环境、器物，再主体和动作", "只有动作及关系传播可以改变状态", "无关器物保留原有位置与姿态", "时间顺序不自动构成因果"]},
+        "events": [], "temporal_relations": [], "causal_relations": [], "unresolved_causal_relations": [],
+        "element_model": {"version": "1.0", "construction_order": ["environment", "objects", "subjects"],
+                          "environment_ids": [], "object_ids": [], "subject_ids": [], "relations": [],
+                          "relation_scope": "initial_state", "state_sources": {}, "action_conditions": []},
+    }  # 新场景保持旧分镜器的基础结构。
+    model = scene["element_model"]  # 元素登记和每个初始断言的证据来源。
+
+    # 缺少必要条件时集中登记常识假设，不冒充原文事实。
+    def assume(explanation: str) -> dict:
+        evidence = _evidence("commonsense_assumption", explanation=explanation)  # 同一假设只登记一次。
+        if evidence not in scene["assumptions"]:
+            scene["assumptions"].append(evidence)
+        return evidence
+
+    # 写入扁平初态，并保留来源；相互矛盾的显式声明不能互相覆盖。
+    def put(identifier: str, attribute: str, value, evidence: dict) -> None:
+        key = f"{identifier}.{attribute}"  # 状态键供世界引擎与镜头快照共用。
+        if key in scene["initial_state"] and scene["initial_state"][key] != value:
+            raise ValueError(f"parse_error: 初始声明冲突：{key}")
+        scene["initial_state"][key] = value
+        model["state_sources"][key] = evidence
+
+    settings = [(record["setting"], record["quote"]) for record in records if record.get("setting")]  # 包括动作中明确提到的目的场景。
+    if len({_SETTINGS[name] for name, _ in settings}) > 1:
+        raise ValueError("parse_error: 当前文本语法只支持一个房间或房子，不支持跨场景或多个场景")
+    root = _SETTINGS[settings[0][0]] if settings else "space"  # 无场景描述时只登记最小抽象空间。
+    root_label = settings[0][0] if settings else "未指定的抽象空间"  # 不补造房屋或装饰。
+    root_source = _evidence("explicit_text", settings[0][0]) if settings else assume("原文没有具体环境，仅使用未指定的抽象空间组织已提到的元素，不添加房屋或道具")  # 场景身份来源。
+    scene["world"]["setting"] = root_label
+    scene["entities"].append({"id": root, "kind": root, "role": "environment", "label": root_label, "evidence": root_source})
+    model["environment_ids"].append(root)
+    put(root, "location", "scene", assume("场景根节点仅作空间登记，不表示新增可见物体"))
+    put(root, "position", "unspecified", _evidence("unknown", explanation="原文未给场景根节点的符号位置"))
+    objects = {}  # 按文本出现顺序登记唯一器物，人物尚未加入。
+
+    # 动作才首次提到的器物也先登记；关系和门状态随后集中设定。
+    def mention(kind: str, quote: str) -> None:
+        if kind not in objects:
+            objects[kind] = {"quote": quote, "attributes": {}}  # 同类器物在有限文本语法中只有一个身份。
+
+    acted_targets = set()  # 只有某物首次动作中的来源修饰能补足其初始关系。
+    introduced_objects = set()  # 再次存在声明可能引入另一器物，有限单物语法不能自动合并。
+    for record in records:
+        if record["type"] == "declaration":
+            if record.get("introduces"):
+                if record["kind"] in introduced_objects:
+                    raise ValueError("parse_error: 同类器物被重复引入，身份不确定；当前文本语法只支持每类一个器物")
+                introduced_objects.add(record["kind"])
+            mention(record["kind"], record["quote"])
+            for attribute in ("door_state", "supported_by", "attached_to", "position"):
+                if attribute in record:
+                    previous = objects[record["kind"]]["attributes"].get(attribute)  # 重复声明只能保持一致。
+                    if previous is not None and previous[0] != record[attribute]:
+                        raise ValueError(f"parse_error: {record['kind']} 的初始 {attribute} 声明冲突")
+                    objects[record["kind"]]["attributes"][attribute] = (record[attribute], record["quote"])
+            if record.get("supported_by"):
+                mention(record["supported_by"], record["quote"])
+            if record.get("attached_to"):
+                mention(record["attached_to"], record["quote"])
+        else:
+            if record["kind"] != "enter_room":
+                mention(record["target"], record["quote"])
+            if record.get("destination"):
+                mention(record["destination"], record["quote"])
+            if record.get("supported_by"):
+                mention(record["supported_by"], record["quote"])
+                previous = objects[record["target"]]["attributes"].get("supported_by")  # 原文动作中的“桌上”也声明初始支撑。
+                if previous is None and record["target"] not in acted_targets:
+                    objects[record["target"]]["attributes"]["supported_by"] = (record["supported_by"], record["quote"])
+            acted_targets.add(record["target"])
+    actions = [record for record in records if record["type"] == "action"]  # 后续执行顺序完全保留原文顺序。
+    if not actions:
+        raise ValueError("parse_error: 环境声明后还需要一个受支持的单人物动作")
+    if any(record["kind"] == "enter_room" for record in actions) and "door" not in objects:
+        raise ValueError("parse_error: 走进房间需要明确登记入口门及其状态，当前语法不猜测入口或添加开门动作")
+    if "wall" in objects:
+        scene["entities"].append({"id": "wall", "kind": "wall", "role": "environment", "label": "墙", "evidence": _evidence("explicit_text", objects["wall"]["quote"])})
+        model["environment_ids"].append("wall")
+        put("wall", "location", root, assume("原文提到的墙属于同一已登记场景"))
+        put("wall", "position", "unspecified", _evidence("unknown", explanation="未给墙的符号方位"))
+    for kind, item in objects.items():
+        if kind == "wall":
+            continue
+        source = _evidence("explicit_text", item["quote"])  # 器物身份来源可追溯至完整分句。
+        attributes = item["attributes"]  # 显式位置、支撑、固定和门状态。
+        scene["entities"].append({"id": kind, "kind": kind, "role": "object", "label": _LABELS[kind], "evidence": source})
+        model["object_ids"].append(kind)
+        relation = "supported_by" if "supported_by" in attributes else "attached_to" if "attached_to" in attributes else None  # 一物只允许一种位置约束。
+        if "supported_by" in attributes and "attached_to" in attributes:
+            raise ValueError(f"parse_error: {kind} 同时具有支撑与固定关系")
+        parent = attributes[relation][0] if relation else root  # 支撑或固定位置由对应父实体定义。
+        if "position" in attributes and parent != root:
+            raise ValueError("parse_error: 受支撑器物的房间方位不能改写为支撑体局部方位；当前语法不进行坐标换算")
+        location_source = _evidence("explicit_text", attributes[relation][1]) if relation else assume("未明确单独位置的器物位于同一已登记场景，具体位置保持未指定")  # 不虚构桌面或房子。
+        put(kind, "location", parent, location_source)
+        put(kind, "position", attributes["position"][0] if "position" in attributes else "unspecified",
+            _evidence("explicit_text", attributes["position"][1]) if "position" in attributes else _evidence("unknown", explanation="未给器物的相对符号位置"))
+        for attribute in ("supported_by", "attached_to", "held_by"):
+            put(kind, attribute, parent if attribute == relation else None,
+                location_source if attribute == relation else assume("未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"))
+        if relation:
+            model["relations"].append({"source": kind, "target": parent, "relation": relation, "scope": "initial_state", "evidence": location_source})
+        if kind in ("cup", "box"):
+            put(kind, "pose", "upright", assume("未给姿态的水杯或箱子初始直立；不假设倾倒、破碎或泼洒"))
+        elif kind == "painting" and relation == "attached_to":
+            put(kind, "pose", "hanging", source)
+        if kind in ("table", "box"):
+            put(kind, "motion", "stationary", assume("器物在动作开始前静止，不把未来移动结果写入初态"))
+            put(kind, "support", "stable", assume("已登记桌子或箱子作为稳定支撑体；不额外生成支撑面或器物"))
+        if kind == "door":
+            declared = attributes.get("door_state")  # 显式门初态优先，绝不为后续进门反推门已打开。
+            door_actions = [record for record in actions if record["kind"] in ("open_door", "close_door", "enter_room")]  # 第一项只用于补足必要初态。
+            if declared:
+                status = "open" if declared[0] == "打开" else "closed"  # 上锁门也处于关闭状态。
+                door_source = _evidence("explicit_text", declared[1])  # 初态并非来自未来开门事件。
+            elif door_actions and door_actions[0]["kind"] != "enter_room":
+                status = "closed" if door_actions[0]["kind"] == "open_door" else "open"  # 只补足反向开合所需初态。
+                door_source = assume("原文未给门初态；首次开门前门关闭，或首次关门前门打开；这是必要前置假设")
+            else:
+                raise ValueError("parse_error: 进入房间前必须明确门已打开，不能静默补造开门或门状态")
+            put(kind, "open", status, door_source)
+            locked = bool(declared and declared[0] in ("锁上", "上锁"))  # 显式上锁不能被开门所需假设覆盖。
+            needs_unlock = any(record["kind"] == "open_door" for record in actions)  # 只在开门需要时假设未锁。
+            put(kind, "locked", True if locked else False if needs_unlock else None,
+                _evidence("explicit_text", declared[1]) if locked else assume("原文没有上锁信息；为执行开门假设门未锁") if needs_unlock else _evidence("unknown", explanation="未说明锁状态，且动作不需要补足"))
+            put(kind, "connects", root, assume("已提到的门作为同一场景的入口；不引入第二个房间"))
+            model["relations"].append({"source": kind, "target": root, "relation": "connects", "scope": "initial_state", "evidence": model["state_sources"]["door.connects"]})
+    person = None  # 第二阶段登记主体，动作尚未执行。
+    appearance = None  # 唯一人物的显式身份引文。
+    person_pronoun = None  # 泛指人物由首个代词建立一致性约束，不补造人物性别属性。
+    for record in actions:
+        if record["person"]:
+            if person is not None and (person != record["person"] or record["introduced"]):
+                raise ValueError("parse_error: 当前环境文本语法只支持一个人物，多人或再次引入人物不在范围内")
+            person, appearance = record["person"], appearance or record["person"]
+        if person is None:
+            raise ValueError("parse_error: 第一个动作必须明确给出男孩、女孩或人，不能猜测省略主语")
+        if record["pronoun"] and person != "人" and record["pronoun"] != ("他" if person == "男孩" else "她"):
+            raise ValueError("parse_error: 人物代词与唯一主体不一致")
+        if record["pronoun"] and person == "人":
+            if person_pronoun is not None and record["pronoun"] != person_pronoun:
+                raise ValueError("parse_error: 同一泛指人物出现互相冲突的代词")
+            person_pronoun = record["pronoun"]
+    actor = _PERSONS[person]  # 所有省略主语的续句共用同一身份。
+    scene["entities"].append({"id": actor, "kind": "person", "role": "subject", "label": appearance, "evidence": _evidence("explicit_text", appearance)})
+    model["subject_ids"].append(actor)
+    outside = any(record["kind"] == "enter_room" for record in actions)  # 进入动作要求人物真实从场景外开始。
+    put(actor, "location", "outside" if outside else root,
+        assume("进入场景的人物初始位于入口外，入口可达；不允许穿越关闭的门") if outside else assume("人物与已提到的器物处于同一已登记场景，动作目标在可达范围内"))
+    put(actor, "position", "unspecified", _evidence("unknown", explanation="未指定人物符号位置"))
+    put(actor, "holding", None, assume("人物初始空手；拿起和放置必须满足实际状态前置，不能预置未来手持结果"))
+    put(actor, "action", "idle", assume("动作开始前人物空闲；只在对应进行时展示动作姿态"))
+    if outside:
+        assume("入口外的人物可以触及已登记入口门；未说明的可达性仅作为必要动作假设")
+    current_support = {kind: scene["initial_state"].get(kind + ".supported_by") for kind in objects}  # 只核验原句“桌上”来源，不代替世界引擎执行动作。
+    actor_region = "outside" if outside else root  # 仅用于为各动作登记适用区域，不放宽实际状态前置。
+    for index, record in enumerate(actions):
+        identifier = f"e{index + 1}"  # 一个骨架对应一次真实发生。
+        kind = record["kind"]  # 世界引擎按枚举编译前置、直接效果和传播。
+        target = record["target"]  # 必须已在人物之前完成登记。
+        action = {"actor": actor, "target": target}  # 操作参数与自然语言标签分离。
+        if kind == "enter_room":
+            action["destination"] = root
+        elif "destination" in record:
+            action["destination"] = record["destination"]
+        if "position" in record:
+            action["position"] = record["position"]
+        reached = action.get("destination") if kind == "place_on" else target  # 放置时检查支撑体可达，其他动作检查自身目标。
+        reach_condition = {"event_id": identifier, "kind": "reachable", "actor": actor, "target": reached, "from_location": actor_region,
+                           "value": True, "evidence": assume(f"主体 {actor} 从 {actor_region} 可触及目标 {reached}；仅为该主体、目标和区域的必要可达假设")}  # 自由说明不参与布尔判断。
+        if reach_condition not in model["action_conditions"]:
+            model["action_conditions"].append(reach_condition)
+        if kind == "enter_room":
+            actor_region = root
+        if kind == "move_object":
+            action["transport_mode"] = "quasistatic"  # 平稳只描述本次移动，不能授权此前拿取或放置。
+            support_condition = {"event_id": identifier, "kind": "support_preserved", "actor": actor, "target": target, "value": True,
+                                 "evidence": assume(f"主体 {actor} 平稳移动 {target} 时采用准静态假设，保持支撑且无滑落；不保证真实物理过程")}  # 只对当前搬运目标生效。
+            if support_condition not in model["action_conditions"]:
+                model["action_conditions"].append(support_condition)
+        if record.get("supported_by") and current_support[target] != record["supported_by"]:
+            raise ValueError("parse_error: 拿起语句中的桌上来源与当前支撑关系冲突")
+        if kind == "pick_up":
+            current_support[target] = None
+        elif kind == "place_on":
+            current_support[target] = action["destination"]
+        moments = {  # 每个描述只表示一个时刻，具体全场景状态来自世界引擎快照。
+            "open_door": ("人物准备打开尚未打开的门", "人物正在打开同一扇门", "门已打开，人物位置由当前状态决定"),
+            "close_door": ("人物准备关闭尚未关闭的门", "人物正在关闭同一扇门", "门已关闭"),
+            "enter_room": ("人物在已打开的入口外", "人物正通过打开的门进入场景", "人物已进入场景，门保留此前状态"),
+            "pick_up": ("人物空手并准备拿起目标器物", "人物正在拿起同一器物", "器物由人物持有，原支撑关系已解除"),
+            "place_on": ("人物持有准备放置的器物", "人物正将器物放到目标支撑面", "器物受到目标支撑，人物已空手"),
+            "move_object": ("目标器物尚在移动前位置", "人物正平稳移动目标器物，原有支撑保持", "器物已到明确目标位置，原有支撑保持"),
+        }[kind]
+        participants = list(dict.fromkeys([actor, target] + ([action["destination"]] if "destination" in action else [])))  # 参与者不能出现未登记引用。
+        scene["events"].append({"id": identifier, "kind": kind, "label": record["quote"], "participants": participants,
+                                "evidence": _evidence("explicit_text", record["quote"]), "action": action,
+                                "keyframes": dict(zip(("before", "during", "after"), moments))})
+        if index:
+            temporal_source = _evidence("explicit_text", record["connector"]) if record["connector"] else assume("没有明确时间连接词的动作按叙述顺序安排；此顺序不构成因果证据")  # 标点只决定呈现顺序。
+            scene["temporal_relations"].append({"source": f"e{index}", "target": identifier, "relation": "before", "evidence": temporal_source})
+            scene["unresolved_causal_relations"].append({"source": f"e{index}", "target": identifier,
+                                                        "evidence": _evidence("unknown", record["connector"], "动作先后不自动提供因果依据；世界引擎另外检查状态前置")})
+    return scene
+```
+
+## src/causal_storyboard/world.py
+
+```python
+"""有限器物世界的可审计规则推演；不识别数据因果，不执行文件或网络操作。"""
+
+from copy import deepcopy
+import json
+import math
+import re
+
+_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_-]{0,63}\Z")  # 标识不能注入状态属性路径。
+_KINDS = {"room", "house", "space", "wall", "door", "table", "cup", "painting", "box", "window", "chair", "person"}  # 有限的登记类型。
+_REGIONS = {"room", "house", "space"}  # 最近区域决定器物所属的全局空间。
+_SENTINELS = {"outside", "unspecified", "scene"}  # 外部位置不创建额外实体。
+_BASES = {"explicit_text", "commonsense_assumption", "unknown"}  # 证据与未知判断分开保存。
+_HOLDABLE = {"cup", "box", "painting", "chair"}  # 当前单手模型允许操作的器物。
+_MOVABLE = {"table", "box", "chair", "cup", "painting"}  # 不提供墙、门及区域的搬运规则。
+_SUPPORTS = {"table", "box", "chair"}  # 放置动作只接受已登记的稳定支撑体。
+_LINKS = ("supported_by", "attached_to", "held_by")  # 三种互斥的直接约束。
+_RULES = {  # 规则说明随编译结果导出，不能被误称为统计识别结果。
+    "open_door": "门未锁且可达时，由关闭转换为打开",
+    "close_door": "门可达时，由打开转换为关闭",
+    "enter_room": "仅从门外通过已打开且连接目的区域的门进入",
+    "pick_up": "空手主体取走可达、未固定的器物，同时解除原支撑",
+    "place_on": "把手持器物放到可达的稳定支撑体，保持原姿态",
+    "move_object": "在同一区域内改变未固定器物的位置；支撑物传播需要明确平稳假设",
+    "inherit_location": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素",
+    "action_complete": "动作结束后主体回到 idle，不扩展额外情节",
+}
+
+
+# 对有限 JSON 迭代检查深度、循环及节点总量，在 deepcopy 前拒绝恶意容器。
+def _check_json(value: object) -> None:
+    stack = [(value, 0, False)]  # 退出标记只用于当前祖先链，允许正常共享引用。
+    ancestors = set()  # 当前容器祖先，识别循环而非重复使用的数据。
+    count = 0  # 编译轨迹也受总量限制，避免无界扫描。
+    while stack:
+        current, depth, leaving = stack.pop()  # 一次处理一个 JSON 节点。
+        if leaving:
+            ancestors.remove(id(current))
+            continue
+        count += 1
+        if count > 2_000_000 or depth > 32:
+            raise ValueError("element_error: 场景超过 JSON 节点或深度限制")
+        if type(current) in (dict, list):
+            if count + len(stack) + len(current) > 2_000_000:
+                raise ValueError("element_error: 场景容器超过 JSON 节点限制")
+            if id(current) in ancestors:
+                raise ValueError("element_error: 场景不能包含循环引用")
+            ancestors.add(id(current))
+            stack.append((current, depth, True))
+            if type(current) is dict:
+                if any(type(key) is not str for key in current):
+                    raise ValueError("element_error: JSON 字典键必须是字符串")
+                stack.extend((item, depth + 1, False) for item in current.values())
+            else:
+                stack.extend((item, depth + 1, False) for item in current)
+        elif type(current) is int and current.bit_length() > 1024:
+            raise ValueError("element_error: 整数超过 1024 位的序列化边界")
+        elif type(current) not in (str, int, float, bool, type(None)) or type(current) is float and not math.isfinite(current):
+            raise ValueError("element_error: 场景只能包含有限 JSON 数据")
+
+
+# 所有显式证据必须能逐字回溯到原文，规则证据必须保留其来源类别。
+def _check_evidence(evidence: object, text: str) -> None:
+    if (not isinstance(evidence, dict) or not isinstance(evidence.get("basis"), str) or evidence["basis"] not in _BASES
+            or not isinstance(evidence.get("quote"), str)
+            or not isinstance(evidence.get("explanation", ""), str)):
+        raise ValueError("element_error: evidence 需要 basis、quote 和字符串 explanation")
+    if evidence["basis"] == "explicit_text" and (not evidence["quote"] or evidence["quote"] not in text):
+        raise ValueError("element_error: 显式证据必须逐字来自 input_text")
+
+
+# 生成带明确说明的规则证据，不把补全规则伪装成原文观察。
+def _rule_evidence(explanation: str) -> dict:
+    return {"basis": "commonsense_assumption", "quote": "", "explanation": explanation + "；仅为登记世界内的规则前向推演，不是数据识别因果"}
+
+
+# 区分 bool、数值和 null，防止 False 与 0 在状态比较时被当作同一事实。
+def _same(left: object, right: object) -> bool:
+    return type(left) is type(right) and left == right
+
+
+# 校验平铺状态键和值，属性数受实体数量约束，不能嵌入结构化副作用。
+def _check_state(state: object, entities: dict) -> None:
+    if not isinstance(state, dict) or len(state) > len(entities) * 40:
+        raise ValueError("element_error: 状态必须是每实体最多 40 个属性的字典")
+    for key, value in state.items():
+        if (key.count(".") != 1 or key.split(".")[0] not in entities
+                or not _IDENTIFIER.fullmatch(key.split(".")[1])
+                or type(value) not in (str, int, float, bool, type(None))):
+            raise ValueError("element_error: 状态需要已登记的 entity.attribute 和 JSON 标量")
+
+
+# 按位置父链迭代计算全局坐标；最近区域内保留各层已知位置，避免局部坐标吞掉桌子移动。
+def _derive(state: dict, entities: dict) -> dict:
+    derived = {}  # 全实体派生属性，调用方决定如何记录其来源。
+    for identifier in entities:
+        chain = []  # 从当前元素到最近区域或外部哨兵的有界路径。
+        seen = set()  # 每条路径单独查环，不递归展开器物关系。
+        current = identifier  # 沿已登记 location 向上查找。
+        while current in entities:
+            if current in seen:
+                raise ValueError("element_error: location 位置图存在环")
+            seen.add(current)
+            chain.append(current)
+            if entities[current]["kind"] in _REGIONS:
+                break
+            current = state[current + ".location"]
+        root = current  # 最近区域 id 或外部哨兵。
+        positions = [item + "=" + (state.get(item + ".position") or "unspecified")
+                     for item in reversed(chain) if item != root]  # 保留每层身份及未知位置，不能把局部左侧冒充房间左侧。
+        derived[identifier + ".root_location"] = root
+        derived[identifier + ".world_position"] = root + ":" + ("/".join(positions) if positions else "unspecified")
+    return derived
+
+
+# 位置图整体查环不能遇到区域就停止，否则会漏掉区域间的恶意循环引用。
+def _check_locations(state: dict, entities: dict) -> None:
+    complete = set()  # 已验证的父链可被后续元素复用。
+    for identifier in entities:
+        path = set()  # 当前链内重复意味着位置循环。
+        current = identifier  # 最多经过实体数量个父节点。
+        while current in entities and current not in complete:
+            if current in path:
+                raise ValueError("element_error: location 位置图存在环")
+            path.add(current)
+            parent = state.get(current + ".location")  # 缺失与 null 不能成为隐式区域。
+            if not isinstance(parent, str) or parent not in entities and parent not in _SENTINELS:
+                raise ValueError(f"element_error: {current}.location 需要登记父实体或位置哨兵")
+            current = parent
+        complete.update(path)
+
+
+# 每一帧检查位置、互斥关系和单手双向约束；未知无关属性原样保留。
+def _check_invariants(state: dict, entities: dict) -> None:
+    _check_state(state, entities)
+    _check_locations(state, entities)
+    carried = {}  # 同一主体至多持有一个器物。
+    for identifier, entity in entities.items():
+        position = state.get(identifier + ".position", "unspecified")  # 缺失局部位置只表示未指定。
+        if position is not None and (not isinstance(position, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]{0,63}", position)):
+            raise ValueError("element_error: position 需要无路径分隔符的符号或 null")
+        links = [(name, state.get(identifier + "." + name)) for name in _LINKS]  # 未登记字段不引入约束边。
+        active = [(name, target) for name, target in links if target is not None]  # 实际存在的直接约束。
+        if len(active) > 1:
+            raise ValueError(f"element_error: {identifier} 不能同时受支撑、固定或手持")
+        for name, target in active:
+            if not isinstance(target, str) or target not in entities or target == identifier:
+                raise ValueError(f"element_error: {identifier}.{name} 引用了无效实体")
+            if state[identifier + ".location"] != target:
+                raise ValueError(f"element_error: {identifier}.{name} 必须与 location 一致")
+            if name == "held_by":
+                if entity["role"] != "object" or entities[target]["kind"] != "person" or target in carried:
+                    raise ValueError("element_error: 手持需要单一主体及单一器物")
+                carried[target] = identifier
+                if state.get(target + ".holding") != identifier:
+                    raise ValueError("element_error: held_by 与 holding 必须双向一致")
+            elif name == "supported_by" and entities[target]["kind"] not in _SUPPORTS:
+                raise ValueError("element_error: supported_by 需要登记支撑体")
+        if entity["kind"] == "person":
+            holding = state.get(identifier + ".holding")  # null 表示明确空手，缺失不用于取物前提。
+            if holding is not None and (not isinstance(holding, str) or holding not in entities or state.get(holding + ".held_by") != identifier):
+                raise ValueError("element_error: holding 与 held_by 必须双向一致")
+        elif entity["role"] == "object" and state[identifier + ".location"] in entities:
+            parent = state[identifier + ".location"]  # 器物跟随主体必须由手持关系说明。
+            if entities[parent]["kind"] == "person" and state.get(identifier + ".held_by") != parent:
+                raise ValueError("element_error: 器物位于主体处需要明确 held_by")
+        if entity["kind"] == "door":
+            if state.get(identifier + ".open") not in ("closed", "open"):
+                raise ValueError("element_error: door.open 只允许 closed 或 open")
+            if type(state.get(identifier + ".locked")) not in (bool, type(None)):
+                raise ValueError("element_error: door.locked 只允许 bool 或 null")
+            destination = state.get(identifier + ".connects")  # 门只连接已登记区域，不能生成目的房间。
+            if not isinstance(destination, str) or destination not in entities or entities[destination]["kind"] not in _REGIONS:
+                raise ValueError("element_error: door.connects 需要登记的区域")
+
+
+# 校验模型输入及初始关系断言，并补齐仅用于呈现的位置派生量。
+def _prepare(scene: dict) -> tuple[dict, dict]:
+    model = scene.get("element_model")  # 元素世界必须显式声明自己的建模版本。
+    if not isinstance(model, dict) or model.get("version") != "1.0" or model.get("construction_order") != ["environment", "objects", "subjects"]:
+        raise ValueError("element_error: element_model 需要 version 1.0 及先环境、器物、主体的登记顺序")
+    if not isinstance(scene.get("input_text"), str) or not 1 <= len(scene["input_text"]) <= 4000:
+        raise ValueError("element_error: input_text 需要 1 至 4000 字符")
+    if not isinstance(scene.get("entities"), list) or not 1 <= len(scene["entities"]) <= 128:
+        raise ValueError("element_error: 需要 1 至 128 个登记实体")
+    entities = {}  # 身份索引同时用于检查全部状态和动作引用。
+    for entity in scene["entities"]:
+        if (not isinstance(entity, dict) or not isinstance(entity.get("id"), str)
+                or not _IDENTIFIER.fullmatch(entity["id"]) or entity["id"] in entities or entity["id"] in _SENTINELS
+                or not isinstance(entity.get("kind"), str) or entity["kind"] not in _KINDS or entity.get("role") not in ("environment", "object", "subject")
+                or not isinstance(entity.get("label"), str) or not entity["label"]):
+            raise ValueError("element_error: 实体 id、label、kind、role 无效或重复")
+        if (entity["kind"] == "person") != (entity["role"] == "subject") or entity["kind"] in _REGIONS and entity["role"] != "environment":
+            raise ValueError("element_error: 区域必须为环境，person 必须为主体")
+        _check_evidence(entity.get("evidence"), scene["input_text"])
+        entities[entity["id"]] = entity
+    order = []  # 登记输出按环境、器物、主体组织，不受原实体数组顺序影响。
+    for field, role in (("environment_ids", "environment"), ("object_ids", "object"), ("subject_ids", "subject")):
+        group = model.get(field)  # 每个实体只能出现在与其 role 对应的登记组。
+        if (not isinstance(group, list) or any(not isinstance(identifier, str) for identifier in group)
+                or len(group) != len(set(group)) or set(group) != {identifier for identifier in entities if entities[identifier]["role"] == role}):
+            raise ValueError(f"element_error: {field} 必须完整且唯一地登记对应 role")
+        order.extend(group)
+    scene["entities"] = [entities[identifier] for identifier in order]
+    entities = {identifier: entities[identifier] for identifier in order}  # 统一后续轨迹快照的登记顺序。
+    state = scene.get("initial_state")  # 直接在场景副本内补充派生量。
+    _check_state(state, entities)
+    sources = model.get("state_sources")  # 每个初态事实均保留独立来源。
+    if not isinstance(sources, dict) or set(sources) != set(state):
+        raise ValueError("element_error: state_sources 必须与 initial_state 属性一一对应")
+    for evidence in sources.values():
+        _check_evidence(evidence, scene["input_text"])
+    assumptions = scene.get("assumptions")  # 可达及平稳运动的假设不能藏在程序分支内。
+    if not isinstance(assumptions, list) or len(assumptions) > 512:
+        raise ValueError("element_error: assumptions 必须是有限列表")
+    for evidence in assumptions:
+        _check_evidence(evidence, scene["input_text"])
+    conditions = model.get("action_conditions", [])  # 可达与支撑保持使用有对象范围的布尔断言，不读取说明文字作开关。
+    if not isinstance(conditions, list) or len(conditions) > 512:
+        raise ValueError("element_error: action_conditions 必须为有界列表")
+    condition_keys = set()  # 同一事件作用域不能出现重复或相互矛盾的断言。
+    event_data = scene.get("events")  # 在提取条件作用域前先检查容器类型，所有输入错误统一为 ValueError。
+    if not isinstance(event_data, list) or not 1 <= len(event_data) <= 120:
+        raise ValueError("element_error: 需要 1 至 120 个动作")
+    event_ids = {event.get("id") for event in event_data if isinstance(event, dict) and isinstance(event.get("id"), str)}  # 条件不能指向不存在的未来或外部动作。
+    for condition in conditions:
+        if (not isinstance(condition, dict) or condition.get("kind") not in ("reachable", "support_preserved")
+                or set(condition) - {"event_id", "kind", "actor", "target", "from_location", "value", "evidence"}
+                or not isinstance(condition.get("event_id"), str) or condition["event_id"] not in event_ids
+                or type(condition.get("value")) is not bool):
+            raise ValueError("element_error: 动作条件需要受支持的 kind 和布尔 value")
+        actor, target = condition.get("actor"), condition.get("target")  # 条件只适用于这一对已登记元素。
+        if (not isinstance(actor, str) or actor not in entities or entities[actor]["kind"] != "person"
+                or not isinstance(target, str) or target not in entities or actor == target):
+            raise ValueError("element_error: 动作条件需要登记主体与目标")
+        location = condition.get("from_location")  # 可达性必须限定起始区域或入口外。
+        if condition["kind"] == "reachable":
+            if not isinstance(location, str) or location != "outside" and (location not in entities or entities[location]["kind"] not in _REGIONS):
+                raise ValueError("element_error: reachable 需要已登记区域或 outside 的 from_location")
+        elif "from_location" in condition:
+            raise ValueError("element_error: support_preserved 不使用 from_location")
+        _check_evidence(condition.get("evidence"), scene["input_text"])
+        if condition["evidence"]["basis"] == "unknown":
+            raise ValueError("element_error: 未知证据不能确认动作条件")
+        identity = (condition["event_id"], condition["kind"], actor, target, location)  # 作用域身份不依赖自由说明文本。
+        if identity in condition_keys:
+            raise ValueError("element_error: 动作条件作用域重复")
+        condition_keys.add(identity)
+    _check_invariants(state, entities)
+    relations = model.get("relations")  # 这些边只断言初态，不能在动作后重新强加原支撑。
+    if not isinstance(relations, list) or len(relations) > len(entities) * 4:
+        raise ValueError("element_error: 元素关系需要有限列表")
+    seen = set()  # 重复断言没有新信息，且可能隐藏相互冲突的关系。
+    for relation in relations:
+        if not isinstance(relation, dict):
+            raise ValueError("element_error: 元素关系必须是字典")
+        source, target, kind = relation.get("source"), relation.get("target"), relation.get("relation")  # 初态断言的两个端点。
+        if (not isinstance(source, str) or not isinstance(target, str) or source not in entities or target not in entities
+                or source == target or kind not in ("supported_by", "attached_to", "inside", "connects")
+                or relation.get("scope", "initial_state") != "initial_state" or (source, kind) in seen):
+            raise ValueError("element_error: 元素关系类型、端点或 initial_state 范围无效")
+        seen.add((source, kind))
+        _check_evidence(relation.get("evidence"), scene["input_text"])
+        key = source + "." + ("location" if kind == "inside" else kind)  # inside 是初始位置声明，不是永久绑定。
+        if state.get(key) != target:
+            raise ValueError(f"element_error: 初始关系 {source}.{kind} 与 initial_state 冲突")
+    for key, value in _derive(state, entities).items():
+        if key in state and not _same(state[key], value):
+            raise ValueError(f"element_error: 派生初态 {key} 与位置链冲突")
+        state[key] = value
+        sources[key] = _rule_evidence("从已登记的 location 与 position 链计算 " + key)
+    return entities, state
+
+
+# 只按有证据的 before 与因果边拓扑排序，未定序和并行的富世界动作明确拒绝。
+def _ordered(scene: dict) -> list:
+    events = scene.get("events")  # 数组只承载事件身份，不提供隐式时间顺序。
+    if not isinstance(events, list) or not 1 <= len(events) <= 120:
+        raise ValueError("element_error: 需要 1 至 120 个动作")
+    pending = {}  # 尚未完成的唯一事件。
+    for event in events:
+        if (not isinstance(event, dict) or not isinstance(event.get("id"), str) or not _IDENTIFIER.fullmatch(event["id"])
+                or event["id"] in pending or not isinstance(event.get("kind"), str) or event["kind"] not in _RULES or event["kind"] in ("inherit_location", "action_complete")):
+            raise ValueError("element_error: 动作 id 重复或 kind 不受支持")
+        if not isinstance(event.get("label"), str) or not isinstance(event.get("participants"), list):
+            raise ValueError("element_error: 动作需要 label 和 participants")
+        if not isinstance(event.get("keyframes"), dict) or any(not isinstance(event["keyframes"].get(phase), str) or not event["keyframes"][phase] for phase in ("before", "during", "after")):
+            raise ValueError("element_error: 动作需要三个非空 keyframes")
+        _check_evidence(event.get("evidence"), scene["input_text"])
+        if event["evidence"]["basis"] == "unknown":
+            raise ValueError("element_error: 未知动作不能作为已发生事件执行")
+        pending[event["id"]] = event
+    dependencies = {identifier: set() for identifier in pending}  # 只记录已支持的时间与因果前置。
+    for field in ("temporal_relations", "causal_relations", "unresolved_causal_relations"):
+        relations = scene.get(field, [] if field == "unresolved_causal_relations" else None)  # 未判定关系可为空，不能混入 DAG。
+        if not isinstance(relations, list) or len(relations) > 120 * 120:
+            raise ValueError("element_error: 事件关系必须是有界列表")
+        for relation in relations:
+            if not isinstance(relation, dict):
+                raise ValueError("element_error: 事件关系必须是字典")
+            source, target = relation.get("source"), relation.get("target")  # 关系端点只引用事件，不能引用器物。
+            if not isinstance(source, str) or not isinstance(target, str) or source not in pending or target not in pending or source == target:
+                raise ValueError("element_error: 事件关系端点无效")
+            _check_evidence(relation.get("evidence"), scene["input_text"])
+            if field == "unresolved_causal_relations":
+                continue
+            if relation["evidence"]["basis"] == "unknown":
+                raise ValueError("element_error: 未知关系不能确定动作顺序")
+            if field == "temporal_relations" and relation.get("relation") != "before":
+                raise ValueError("element_error: 富世界暂不支持 overlaps 并行动作")
+            if field == "causal_relations" and (relation.get("relation") not in (None, "causes", "enables") or relation["evidence"]["basis"] == "unknown"):
+                raise ValueError("element_error: 未知或无效因果关系不能加入 DAG")
+            dependencies[target].add(source)
+    ordered = []  # 每一步必须具有唯一可执行动作，拒绝从数组猜测顺序。
+    while pending:
+        ready = [identifier for identifier in pending if not dependencies[identifier]]  # 当前所有拓扑前沿。
+        if not ready:
+            raise ValueError("element_error: before / causal 关系存在有向环")
+        if len(ready) != 1:
+            raise ValueError("element_error: 富世界动作次序未定或并行；需要明确 before 关系")
+        identifier = ready[0]  # 唯一下一动作，和输入数组排列无关。
+        ordered.append(pending.pop(identifier))
+        for predecessors in dependencies.values():
+            predecessors.discard(identifier)
+    return ordered
+
+
+# 只读取匹配主体、目标、区域的肯定断言；“不可达”等说明文字不会获得执行权限。
+def _condition(scene: dict, event_id: str, kind: str, actor: str, target: str, location: str | None = None) -> dict:
+    for condition in scene["element_model"].get("action_conditions", []):
+        if (condition["event_id"] == event_id and condition["kind"] == kind and condition["actor"] == actor and condition["target"] == target
+                and condition.get("from_location") == location and condition["value"] is True):
+            return deepcopy(condition)
+    raise ValueError(f"element_error: 缺少明确的 {kind} 动作条件")
+
+
+# 验证两个元素同处登记区域，具体可达性另由结构化条件确认。
+def _same_root(scene: dict, state: dict, actor: str, target: str) -> None:
+    root = state[actor + ".root_location"]  # 行为主体当前区域，不从未来目的地取值。
+    if root != state[target + ".root_location"] or not any(entity["id"] == root and entity["kind"] in _REGIONS for entity in scene["entities"]):
+        raise ValueError("element_error: 主体和目标需要处于同一已知可达区域，不能用未知位置偷过前置")
+
+
+# 判断器物是否位于移动父体的位置子树；该有界查询也覆盖多层盒子及桌面器物。
+def _descends(state: dict, entities: dict, identifier: str, ancestor: str) -> bool:
+    current = state[identifier + ".location"]  # 从父开始，不把元素自己算作后代。
+    for unused in range(len(entities)):  # 位置图已查环，数量界限避免任意长链。
+        if current == ancestor:
+            return True
+        if current not in entities:
+            return False
+        current = state[current + ".location"]
+    return False
+
+
+# 从当前全场状态编译一个动作的直接变化与进行时差量，所有前置在真正修改前检查。
+def _apply(scene: dict, event: dict, state: dict, entities: dict) -> tuple[dict, dict, dict, list, list]:
+    action = event.get("action")  # 结构化动作必须由解析器给出，不从 label 猜测。
+    fields = {"actor", "target"}  # 每类动作只接受自身使用的参数，避免忽略无效修饰。
+    if event["kind"] in ("enter_room", "place_on"):
+        fields.add("destination")
+    if event["kind"] == "move_object":
+        fields.add("position")
+    if event["kind"] in ("enter_room", "pick_up", "place_on", "move_object"):
+        fields.add("transport_mode")
+    if not isinstance(action, dict) or set(action) - fields or "transport_mode" in action and action["transport_mode"] != "quasistatic":
+        raise ValueError("element_error: action 包含该动作不支持的参数或搬运方式")
+    actor, target = action.get("actor"), action.get("target")  # 操作主体与目标身份。
+    if (not isinstance(actor, str) or not isinstance(target, str) or actor not in entities or target not in entities
+            or entities[actor]["kind"] != "person" or actor == target):
+        raise ValueError("element_error: action 需要已登记 person 主体和不同目标")
+    if (not event["participants"] or any(not isinstance(item, str) or item not in entities for item in event["participants"])
+            or actor not in event["participants"] or target not in event["participants"]):
+        raise ValueError("element_error: participants 需要包含已登记的 actor 和 target")
+    kind = event["kind"]  # 本轮只应用一条受支持规则。
+    preconditions = {}  # 仅记录实际读取的状态条件，不将无关画作变成动作原因。
+    direct = {actor + ".action": "idle"}  # 动作完成只恢复主体空闲，不虚构后续反应。
+    active = {}  # 进行时从本轮 before 派生，不能提前拿取或放开器物。
+    unresolved = []  # 未建模物理影响作为限制返回，不自动生成结果。
+    conditions = []  # 保存本动作实际依赖的结构化假设，供审计读取。
+
+    # 一致地读取有定义前置；缺失键不能被当作已知空手或未锁。
+    def require(key: str, expected: object) -> None:
+        if key not in state or not _same(state[key], expected):
+            raise ValueError(f"element_error: {event['id']} 前置 {key}={expected!r} 不成立")
+        preconditions[key] = state[key]
+
+    # 可达性读取的局部和全局位置都进入审计前置。
+    def reachable(other: str) -> None:
+        _same_root(scene, state, actor, other)
+        conditions.append(_condition(scene, event["id"], "reachable", actor, other, state[actor + ".root_location"]))
+        for identifier in (actor, other):
+            for attribute in ("location", "root_location"):
+                preconditions[identifier + "." + attribute] = state[identifier + "." + attribute]
+
+    # 入口必须位于所连接区域，且从外部到该入口有明确可达条件。
+    def entry_reachable() -> None:
+        require(actor + ".location", "outside")
+        require(target + ".root_location", state[target + ".connects"])
+        conditions.append(_condition(scene, event["id"], "reachable", actor, target, "outside"))
+
+    # 所有会搬运器物的动作共用支撑后代检查，不能绕过平稳无滑落的条件。
+    def transport_payload(carrier: str) -> None:
+        for identifier in entities:
+            preconditions[identifier + ".location"] = state[identifier + ".location"]  # 位置拓扑也决定“没有载荷”，移除载荷的动作不能从依赖审计中消失。
+        dependents = [identifier for identifier in entities if _descends(state, entities, identifier, carrier)]  # 包括深层支撑器物。
+        for identifier in dependents:
+            if identifier + ".supported_by" in state:
+                preconditions[identifier + ".supported_by"] = state[identifier + ".supported_by"]  # 明确记录有或没有支撑的读取。
+        supported = [identifier for identifier in dependents if state.get(identifier + ".supported_by") is not None]  # 沿位置链保留的支撑需要额外保证。
+        if supported:
+            if action.get("transport_mode") != "quasistatic":
+                raise ValueError("element_error: 本次搬运动作缺少明确的准静态方式，不能借用未来动作")
+            conditions.append(_condition(scene, event["id"], "support_preserved", actor, carrier))
+            for identifier in supported:
+                preconditions[identifier + ".supported_by"] = state[identifier + ".supported_by"]
+            unresolved.append({"entity": carrier, "rule_id": "conditional_support", "evidence": {
+                "basis": "unknown", "quote": "", "explanation": "支撑后代仅在结构化平稳无滑落条件下保持；未进行动力学验证"}})
+
+    if kind in ("open_door", "close_door", "enter_room"):
+        if entities[target]["kind"] != "door":
+            raise ValueError("element_error: 开关门或入室目标必须是 door")
+        if kind == "enter_room":
+            destination = action.get("destination")  # 门连接的已登记区域才可作为目的地。
+            if not isinstance(destination, str) or destination not in entities or entities[destination]["kind"] not in _REGIONS:
+                raise ValueError("element_error: enter_room 需要登记的区域 destination")
+            entry_reachable()
+            require(target + ".connects", destination)
+            require(target + ".open", "open")
+            if state.get(actor + ".holding") is not None:
+                transport_payload(state[actor + ".holding"])
+            direct[actor + ".location"] = destination
+            direct[actor + ".position"] = "unspecified"  # 入口外的局部左右位置不能继承为房间内的位置。
+            active[actor + ".action"] = "entering"
+        else:
+            if state[actor + ".root_location"] == "outside":
+                entry_reachable()
+            else:
+                reachable(target)
+            require(target + ".open", "closed" if kind == "open_door" else "open")
+            if kind == "open_door":
+                require(target + ".locked", False)
+            direct[target + ".open"] = "open" if kind == "open_door" else "closed"
+            active[actor + ".action"] = "opening" if kind == "open_door" else "closing"
+    elif kind == "pick_up":
+        if entities[target]["kind"] not in _HOLDABLE or entities[target]["role"] != "object":
+            raise ValueError("element_error: pick_up 只支持登记的可持器物")
+        reachable(target)
+        require(actor + ".holding", None)
+        require(target + ".held_by", None)
+        require(target + ".attached_to", None)
+        transport_payload(target)
+        if target + ".supported_by" not in state:
+            raise ValueError("element_error: pick_up 需要明确原 supported_by（无支撑用 null）")
+        preconditions[target + ".supported_by"] = state[target + ".supported_by"]
+        direct.update({target + ".supported_by": None, target + ".held_by": actor, target + ".location": actor,
+                       target + ".position": "unspecified", actor + ".holding": target})  # 新父体下的位置没有依据时退回未指定。
+        active[actor + ".action"] = "reaching"
+    elif kind == "place_on":
+        destination = action.get("destination")  # 支撑体必须已经登记，动作不能临时生成桌子。
+        if not isinstance(destination, str) or destination not in entities or entities[destination]["kind"] not in _SUPPORTS or destination in (actor, target):
+            raise ValueError("element_error: place_on 需要不同的登记支撑体 destination")
+        reachable(destination)
+        require(actor + ".holding", target)
+        require(target + ".held_by", actor)
+        require(destination + ".motion", "stationary")
+        require(destination + ".support", "stable")
+        transport_payload(target)
+        direct.update({target + ".held_by": None, target + ".supported_by": destination, target + ".location": destination,
+                       target + ".position": "unspecified", actor + ".holding": None})
+        active[actor + ".action"] = "placing"
+    elif kind == "move_object":
+        position = action.get("position")  # 当前只建模区域内离散左右中位置，不提供跨房间传送。
+        if entities[target]["kind"] not in _MOVABLE or entities[target]["role"] != "object" or position not in ("left", "right", "center") or "destination" in action:
+            raise ValueError("element_error: move_object 只允许可移动器物在当前区域内移动到 left/right/center")
+        reachable(target)
+        require(target + ".attached_to", None)
+        require(target + ".held_by", None)
+        require(target + ".supported_by", None)
+        require(target + ".location", state[actor + ".root_location"])
+        require(target + ".motion", "stationary")
+        transport_payload(target)
+        direct[target + ".position"] = position
+        active.update({actor + ".action": "moving_object", target + ".motion": "moving", target + ".position": "in_transit"})
+        unresolved.append({"entity": target, "rule_id": "unmodeled_physics", "evidence": {"basis": "unknown", "quote": "", "explanation": "未给风、震动、摩擦或加速度数据；不判定额外滑落、倾倒、泼洒或破碎。支撑保持仅在明确平稳假设范围内成立"}})
+    after = state | direct  # 完成态只改规则直接输出，不把进行时动作残留到后续。
+    after.update(_derive(after, entities))
+    during = state | active  # 取物进行时仍保留支撑和手持前态。
+    during.update(_derive(during, entities))
+    _check_invariants(after, entities)
+    _check_invariants(during, entities)
+    return preconditions, after, during, unresolved, conditions
+
+
+# 为每项实际变化附上前后值、规则与来源；未变属性不伪造为效果。
+def _effects(before: dict, after: dict, event: dict) -> tuple[list, list]:
+    direct = []  # 动作直接改变的登记属性。
+    propagated = []  # 由位置闭包计算的全局属性变化。
+    for key, value in after.items():
+        if key in before and _same(before[key], value):
+            continue
+        identifier, attribute = key.split(".")  # 效果引用精确实体及单个属性。
+        rule = "inherit_location" if attribute in ("root_location", "world_position") else "action_complete" if attribute == "action" else event["kind"]  # 位置传播不冒充直接操作。
+        evidence = deepcopy(event["evidence"]) if rule == event["kind"] else _rule_evidence(_RULES[rule])  # 保留原动作引文并说明其适用规则。
+        evidence["explanation"] = evidence.get("explanation", "") + "；" + _RULES[rule] + "；规则推演不代表数据识别因果"
+        effect = {"entity": identifier, "property": attribute, "before": before.get(key), "after": value, "rule_id": rule, "evidence": evidence}  # 缺失初值由 before:null 表示，同时完整快照保留缺失信息。
+        (propagated if rule == "inherit_location" else direct).append(effect)
+    return direct, propagated
+
+
+# 在独立副本上编译动作，返回所有元素的每步快照及兼容旧分镜器的状态差量。
+def compile_element_scene(scene: dict) -> dict:
+    _check_json(scene)
+    if not isinstance(scene, dict):
+        raise ValueError("element_error: scene 必须是字典")
+    compiled = deepcopy(scene)  # 外部解析器缓存与调用方输入不能被本函数修改。
+    entities, initial = _prepare(compiled)  # 初态先完成全场登记及一致性检查。
+    ordered = _ordered(compiled)  # 排序由 DAG 决定，不依赖动作数组顺序。
+    state = initial.copy()  # 每个动作都读取上一个动作真正完成的世界状态。
+    trace = []  # 完整轨迹以新字典保存，禁止后续动作回写前一帧。
+    writers = {}  # 每个状态属性最近一次写入的事件；初态不伪造事件节点。
+    dependencies = []  # 在当前规则内满足后续前置的状态依赖，与统计因果关系区分。
+    for event in ordered:
+        preconditions, after, during, unresolved, conditions = _apply(compiled, event, state, entities)  # 行为前置失败即中止，不能跳过动作。
+        direct, propagated = _effects(state, after, event)  # 每项变化保留来源与规则。
+        event["preconditions"] = preconditions
+        event["required_conditions"] = conditions
+        event["updates"] = {key: value for key, value in after.items() if key not in state or not _same(state[key], value)}
+        event["active_state"] = {key: value for key, value in during.items() if key not in state or not _same(state[key], value)}
+        sources = {}  # 按前置的最近写入事件合并依赖，避免从纯先后关系构造因果。
+        for key in preconditions:
+            if key in writers:
+                sources.setdefault(writers[key], []).append(key)
+        for source, keys in sources.items():
+            dependencies.append({"source": source, "target": event["id"], "relation": "enables_under_rules", "state_keys": keys,
+                                 "evidence": _rule_evidence("前一动作的状态输出满足本动作读取的前置或载荷拓扑条件；这是规则执行依赖，不承诺为最小因果集合")})
+        writers.update({key: event["id"] for key in event["updates"]})
+        changed = {effect["entity"] for effect in direct + propagated}  # 只读参与者不会因此被误记为发生状态变化。
+        trace.append({"event_id": event["id"], "before": state.copy(), "after": after.copy(),
+                      "direct_effects": direct, "propagated_effects": propagated,
+                      "unchanged_entities": [identifier for identifier in entities if identifier not in changed],
+                      "unresolved_effects": unresolved})
+        state = after
+    compiled["events"] = ordered
+    compiled["element_trace"] = trace
+    compiled["state_dependencies"] = dependencies
+    compiled["element_model"]["rule_catalog"] = {identifier: {"description": description, "basis": "rule_based_not_data_identified"} for identifier, description in _RULES.items()}
+    compiled["element_model"]["relation_scope"] = "initial_state"
+    _check_json(compiled)
+    try:
+        json.dumps(compiled, allow_nan=False)  # 完整输出必须可编码，包括非核心附加元数据。
+    except (ValueError, TypeError, OverflowError, RecursionError) as error:
+        raise ValueError("element_error: 编译结果不能序列化为 JSON") from error
+    return compiled
+
+
+# 独立重编译并比较所有派生输出，拒绝手改更新、进行态、快照、效果或规则说明。
+def validate_element_scene(scene: dict) -> None:
+    _check_json(scene)
+    if not isinstance(scene, dict) or not isinstance(scene.get("element_trace"), list):
+        raise ValueError("element_error: 元素场景需要先经过 compile_element_scene 编译")
+    expected = compile_element_scene(scene)  # 使用同一纯函数规则恢复可审计的唯一结果。
+    for key in ("entities", "initial_state", "events", "element_trace", "element_model", "state_dependencies"):
+        if json.dumps(scene.get(key), sort_keys=True, allow_nan=False) != json.dumps(expected[key], sort_keys=True, allow_nan=False):
+            raise ValueError(f"element_error: {key} 与规则编译结果不一致，可能被篡改")
 ```
 
 ## src/causal_storyboard/images.py
@@ -748,7 +1674,7 @@ STORYBOARD_IMAGE_KEY=
 
 ## .gitignore
 
-```gitignore
+```text
 # 私人数据、凭据与本地环境始终留在设备上。
 .env
 .env.*
@@ -822,5 +1748,36 @@ jobs:
           assert shots[-1]['end_state']['cup.pose'] == 'tipped_on_table'
           assert all(shot['image']['path'] is None and shot['image']['status'] == 'not_requested' for shot in shots)
           assert report['generation_kind'] == 'STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO'
+          PY
+      - name: Verify environment-first element propagation
+        run: |
+          python -B - <<'PY'
+          import sys
+          from pathlib import Path
+          # 直接加载源码，检查环境器物登记、规则前置和完整场景快照。
+          sys.path.insert(0, str(Path('src').resolve()))
+          from causal_storyboard import build_storyboard
+          # room 是显式开门、入室、平稳移桌链；没有请求任何模型。
+          room = build_storyboard('房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。')
+          assert room['scene']['element_model']['construction_order'] == ['environment', 'objects', 'subjects']
+          assert room['element_trace'][0]['after']['door.open'] == 'open'
+          assert room['element_trace'][1]['after']['boy.location'] == 'room'
+          assert room['element_trace'][2]['after']['cup.world_position'] == 'room:table=right/cup=unspecified'
+          assert all('painting' in step['unchanged_entities'] for step in room['element_trace'])
+          assert room['state_dependencies'][0]['state_keys'] == ['door.open']
+          assert all(left['end_state'] == right['start_state'] for left, right in zip(room['shots'], room['shots'][1:]))
+          # picked 复核拿取与放回时支撑、持有关系必须成对变更。
+          picked = build_storyboard('房间里有一张桌子，桌上放着一个水杯，墙上挂着一幅画。一个男孩拿起水杯，然后把水杯放回桌上。')
+          assert picked['element_trace'][0]['after']['cup.held_by'] == 'boy'
+          assert picked['element_trace'][0]['after']['cup.supported_by'] is None
+          assert picked['element_trace'][1]['after']['cup.supported_by'] == 'table'
+          assert picked['element_trace'][1]['after']['boy.holding'] is None
+          assert {entity['id'] for entity in build_storyboard('男孩打开门。')['scene']['entities']} == {'space', 'door', 'boy'}
+          try:
+              build_storyboard('房间里有一扇关闭的门。男孩走进房间。')
+          except ValueError:
+              pass
+          else:
+              raise AssertionError('closed door must prevent entry')
           PY
 ```

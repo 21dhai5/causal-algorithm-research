@@ -6,7 +6,7 @@
 
 **分镜图像是若干静态关键帧，不是连续视频。** 时间轴和运动说明属于待制作脚本；本程序不插帧、不合成 MP4，不生成声音，也不能保证生成图中的物理和身份一致性。
 
-默认总时长 6 秒、镜头数 3、统一简洁写实故事板风格。分镜完整覆盖总长，不重叠、不留空；故事事件可以并行，镜头仍依次播放。规则解析器只覆盖明确的小范围中文语法；未知、否定、条件或存在冲突的句子明确报错，避免任意补写情节。
+默认总时长 6 秒、镜头数 3、统一简洁写实故事板风格。分镜完整覆盖总长，不重叠、不留空；旧版独立简单事件可以并行，新增环境器物动作必须明确顺序，镜头仍依次播放。规则解析器只覆盖明确的小范围中文语法；未知、否定、条件或存在冲突的句子明确报错，避免任意补写情节。
 
 两份用户材料用于以下设计原则，不将其历史操作描述当作当前工程事实：
 
@@ -26,12 +26,13 @@
 - 男孩踢足球，足球滚向桌子并撞倒桌上杯子的示例句型；允许部分颜色、衣着和量词变体。
 - 猫坐在窗边；男孩跑步或开始跑步。
 - 上述两个独立简单主体用“然后／随后／接着”表示先后，用“同时”表示完整并行。
+- 环境声明在前、单人物动作在后的元素语法：开门、关门、入室、拿起水杯或箱子、放到桌子或箱子上，以及明确平稳方式的移桌或移箱；详见[场景元素说明](scene-elements.md)。这条语法不继承旧例的衣着变体或并行支持。
 
 “穿红衣的男孩阻止穿蓝衣的男孩跑步”等复杂输入不会被截取成一个错误的肯定事件。普通高桌、跳跃、否定和复杂混合并行不在当前规则覆盖范围，明确失败。
 
 时间关系保存为 `before` 或 `overlaps`。因果图另存 `causes` 和 `enables`：前者表示文本或规则提出的导致关系，后者只表示使后续事件可发生的前置条件。每条关系都带 `basis`、引文和解释。`unknown` 关系仅保存在 `unresolved_causal_relations`，不会自动成为因果边。
 
-校验实体与事件 ID、关系端点、原文证据、状态字段和前置条件；联合检查 before／因果依赖是否有环。只有全部事件独立、无顺序和因果冲突时才接受全程同时；复杂资源冲突调度暂不支持。
+校验实体与事件 ID、关系端点、原文证据、状态字段和前置条件；联合检查 before／因果依赖是否有环。旧版简单事件只有全部独立、无顺序和因果冲突时才接受全程同时；新增环境器物动作拒绝并行或次序未定，复杂资源冲突调度暂不支持。
 
 ### 时间与状态
 
@@ -42,6 +43,16 @@
 每个事件包含 `preconditions`、`active_state` 和 `updates`。镜头保存起止状态及单个关键帧状态。未开始的事件不写入未来结果；已经结束的事件不回到初态。“跑起来”按准备—开始—跑动建模，不能在此前镜头就变成跑动。
 
 单张图选择一个具体时刻，不要求一张图同时画出球离脚、滚动、接触和杯倒。跨镜复用实体外观、空间条件、统一风格及状态约束。
+
+### 环境、器物与状态传播
+
+新语法由 `RuleSceneParser` 分流到元素解析器，先按 `environment → objects → subjects` 登记稳定身份，再由 `compile_element_scene` 编译动作。每次读取上一个动作结束的完整状态，检查前置，写入直接效果，沿位置、支撑、固定或手持链计算 `root_location` 和 `world_position`；无关元素保留原状态，最后把完整快照交给时间轴和分镜器。
+
+例如“开门 → 入室 → 平稳移桌”：门先从 `closed` 变为 `open`，人物才从 `outside` 进入 `room`；移桌只直接改变桌子位置，桌上的杯子在明确无滑落假设下跟随，墙画仍挂在墙上。“拿起 → 放回”则将杯子支撑从 `table` 改为 `null` 再恢复，同时将手持关系从 `null` 改为 `boy` 再解除。初始关系仅适用于初态，不能强行覆盖后续拿取结果。
+
+原文事实用 `explicit_text` 保存引文；门初态缺省、未锁、可达性、静止支撑和准静态无滑落等必要补全集中保存在 `scene.assumptions` 及状态来源中；未知位置和未建模物理影响保持 `unknown`。`world.py` 是手写规则引擎，JSON 是规则推演记录，不代表从图像或数据学到了因果知识。先后关系也不会自动变成因果边。
+
+文本入口当前限单场景、单人物、每类器物一个身份；不支持否定、条件、多人、富世界并行或未知分句。缺少入口的“走进房间”、门关闭却直接进入、未拿起就放回等前置冲突会失败。未指定环境时只登记抽象 `space` 与已提及器物，不补造房子或门。完整输入、字段和两份离线示例见[场景元素与状态传播](scene-elements.md)。
 
 ### 图像适配
 
@@ -73,13 +84,17 @@ board = build_storyboard(
 
 主要输出：
 
+- `schema_version`：当前为 `1.1`；旧示例文件保留其生成时版本。
 - `modeling_scope`：规则／文本建模声明。
 - `overall_scene_description`：原始场景与明确列出的统一设定。
-- `scene.entities`：稳定实体 ID、原文外观与证据；后文明确补充的颜色会合并。
+- `scene.entities`：稳定实体 ID、原文外观与证据；旧足球语法中后文明确补充的颜色会合并，元素语法暂不支持这种外观补充。
 - `scene.world`：环境和几何约束；补全属性注明依据。
 - `scene.initial_state`：事件前状态，键为 `entity.attribute`。
 - `scene.assumptions`：集中列出的常识或空间补全。
 - `scene.continuity`：展示外观及跨镜连续性约束，不冒充原文事实。
+- `scene.element_model`：仅元素语法包含；记录登记顺序、三类实体 ID、初始关系、逐属性 `state_sources`、有对象范围的布尔 `action_conditions` 与 `rule_catalog`，模型内部版本为 `1.0`。
+- `element_trace`：仅元素语法包含；每个事件的完整 `before`／`after`、`direct_effects`、`propagated_effects`、`unchanged_entities` 和 `unresolved_effects`。效果记录前后值、规则 ID 与证据。
+- `state_dependencies`：仅元素语法包含；根据动作前置状态的最近写入者记录规则内使能边，不从时间顺序推定现实因果。
 - `events`：一次事件的参与者、证据、前置、活动、结果和三个阶段的关键帧文本。
 - `temporal_relations`、`causal_relations`、`unresolved_causal_relations`：分别保存先后／并行、因果／使能、未知关系。
 - `timeline`：每个故事事件发生一次的起止时间。
@@ -99,13 +114,18 @@ src/causal_storyboard/
   __init__.py       # 公共规划接口
   __main__.py       # python -m 入口
   core.py           # 解析、证据、DAG、状态、时间轴与提示词
+  element_parser.py # 环境先行的有限中文语法与来源登记
+  world.py          # 动作前置、元素状态传播与轨迹复核
   images.py         # 图像协议、HTTP、PNG检查与安全保存
   cli.py            # 参数、离线规划、可选图像调用、JSON保存
 experiments/run_storyboard.py
 examples/storyboard-football/storyboard.json
+examples/scene-elements-room/storyboard.json
+examples/scene-elements-pick-place/storyboard.json
 .env.example
 pyproject.toml
 docs/storyboard-mvp.md
+docs/scene-elements.md
 docs/storyboard-source.md
 docs/storyboard-validation.md
 ```
@@ -122,6 +142,12 @@ python -B experiments/run_storyboard.py --text "一个男孩踢了一下足球�
 ```
 
 第二条在已有父目录中独占创建新目录。若目标已存在，返回错误而不覆盖。仓库中的正式示例已经存在，重新运行请使用其他输出目录。
+
+环境器物示例同样默认 6 秒、3 镜头，省略 `--output` 时只输出 JSON：
+
+```powershell
+python -B experiments/run_storyboard.py --text "房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。"
+```
 
 安装项目后也可运行 `causal-storyboard --text "一只猫坐在窗边。"`，或 `python -m causal_storyboard`。安装完整项目会安装 pyproject 中原有的 NumPy 依赖；只需离线分镜时可以使用源码入口。
 
@@ -184,6 +210,8 @@ python -B experiments/run_storyboard.py --text "一个男孩踢了一下足球�
 3. **倾倒后。** 沿用相同场景与风格；中景、固定机位、轻微俯视，构图清楚显示桌面支撑关系。杯子向内侧倒下后留在桌面，球处于桌体外接触区域，男孩保持踢后姿态；不再断言倾倒后的持续接触。只画该瞬间，不增加碎片、液体或反应情节。
 
 以上是完整程序提示词的语义说明，机器输出保留了可审计状态字段，不是已经生成的图像。
+
+新增正式示例：[开门、入室、平稳移桌](../examples/scene-elements-room/storyboard.json)与[拿起、放回水杯](../examples/scene-elements-pick-place/storyboard.json)。均为实际离线运行得到的 6 秒、3 镜头 JSON；包含全场元素快照，未请求图像，图片路径为 `null`。具体变迁、假设和读取代码见[场景元素说明](scene-elements.md)。
 
 ## 7. 测试方法、已知限制与扩展方向
 

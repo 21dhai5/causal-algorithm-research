@@ -10,6 +10,7 @@
 - [实际执行的实验与审查](docs/executed-validation.md)
 - [参与研究与提交提案](CONTRIBUTING.md)
 - [因果事件分镜 MVP](docs/storyboard-mvp.md)：文本规则解析、事件图、时间片段、逐镜提示词及可选图像适配器；分镜静帧不等于连续视频。
+- [场景元素与状态传播](docs/scene-elements.md)：先登记环境、器物与主体，再检查动作前提；保留直接效果、关系传播、未变元素和未知影响。
 
 ## 文本生成分镜
 
@@ -20,6 +21,15 @@ python -B experiments/run_storyboard.py --text "一个男孩踢了一下足球�
 ```
 
 默认6秒、3镜头，独占创建新输出目录。离线不会生成图片或虚假路径；配置 `STORYBOARD_IMAGE_URL`、`STORYBOARD_IMAGE_MODEL`、`STORYBOARD_IMAGE_KEY` 并显式加 `--generate-images` 才发起图像请求。有限规则不覆盖通用中文；空间补全、运行边界和[完整代码](docs/storyboard-source.md)均见说明。
+
+场景元素示例也使用同一入口；以下命令只向终端输出 JSON：
+
+```powershell
+python -B experiments/run_storyboard.py --text "房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。"
+python -B experiments/run_storyboard.py --text "房间里有一张桌子，桌上放着一个水杯，墙上挂着一幅画。一个男孩拿起水杯，然后把水杯放回桌上。"
+```
+
+正式结果见[开门、入室与移桌](examples/scene-elements-room/storyboard.json)及[拿起、放回水杯](examples/scene-elements-pick-place/storyboard.json)。移桌后杯子在明确的平稳支撑假设下跟随位置变化，墙画保持原状态；拿起和放回会更新支撑与手持关系。这是有限符号规则推演，不是学习得到的因果知识或物理仿真；输入要求、事实来源和补全假设见[使用说明](docs/scene-elements.md)。
 
 ## 运行首版原型
 

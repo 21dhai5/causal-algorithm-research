@@ -45,3 +45,34 @@ jobs:
           assert all(shot['image']['path'] is None and shot['image']['status'] == 'not_requested' for shot in shots)
           assert report['generation_kind'] == 'STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO'
           PY
+      - name: Verify environment-first element propagation
+        run: |
+          python -B - <<'PY'
+          import sys
+          from pathlib import Path
+          # 直接加载源码，检查环境器物登记、规则前置和完整场景快照。
+          sys.path.insert(0, str(Path('src').resolve()))
+          from causal_storyboard import build_storyboard
+          # room 是显式开门、入室、平稳移桌链；没有请求任何模型。
+          room = build_storyboard('房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。')
+          assert room['scene']['element_model']['construction_order'] == ['environment', 'objects', 'subjects']
+          assert room['element_trace'][0]['after']['door.open'] == 'open'
+          assert room['element_trace'][1]['after']['boy.location'] == 'room'
+          assert room['element_trace'][2]['after']['cup.world_position'] == 'room:table=right/cup=unspecified'
+          assert all('painting' in step['unchanged_entities'] for step in room['element_trace'])
+          assert room['state_dependencies'][0]['state_keys'] == ['door.open']
+          assert all(left['end_state'] == right['start_state'] for left, right in zip(room['shots'], room['shots'][1:]))
+          # picked 复核拿取与放回时支撑、持有关系必须成对变更。
+          picked = build_storyboard('房间里有一张桌子，桌上放着一个水杯，墙上挂着一幅画。一个男孩拿起水杯，然后把水杯放回桌上。')
+          assert picked['element_trace'][0]['after']['cup.held_by'] == 'boy'
+          assert picked['element_trace'][0]['after']['cup.supported_by'] is None
+          assert picked['element_trace'][1]['after']['cup.supported_by'] == 'table'
+          assert picked['element_trace'][1]['after']['boy.holding'] is None
+          assert {entity['id'] for entity in build_storyboard('男孩打开门。')['scene']['entities']} == {'space', 'door', 'boy'}
+          try:
+              build_storyboard('房间里有一扇关闭的门。男孩走进房间。')
+          except ValueError:
+              pass
+          else:
+              raise AssertionError('closed door must prevent entry')
+          PY

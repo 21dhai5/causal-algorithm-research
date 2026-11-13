@@ -1,0 +1,1927 @@
+{
+  "schema_version": "1.1",
+  "input_text": "房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。",
+  "duration_s": 6.0,
+  "overall_scene_description": "房间里有一扇关闭的门，墙上挂着一幅画，桌上放着一个水杯。一个男孩打开门，然后走进房间，再平稳地把桌子移到房间右侧。 统一空间和外观：已登记环境与器物身份固定；未说明外观保持简洁中性。场景根节点仅作空间登记，不表示新增可见物体；原文提到的墙属于同一已登记场景；未明确单独位置的器物位于同一已登记场景，具体位置保持未指定；未声明的支撑、固定和手持关系初始为空；不预置任何动作结果；原文没有上锁信息；为执行开门假设门未锁；已提到的门作为同一场景的入口；不引入第二个房间；未给姿态的水杯或箱子初始直立；不假设倾倒、破碎或泼洒；器物在动作开始前静止，不把未来移动结果写入初态；已登记桌子或箱子作为稳定支撑体；不额外生成支撑面或器物；进入场景的人物初始位于入口外，入口可达；不允许穿越关闭的门；人物初始空手；拿起和放置必须满足实际状态前置，不能预置未来手持结果；动作开始前人物空闲；只在对应进行时展示动作姿态；入口外的人物可以触及已登记入口门；未说明的可达性仅作为必要动作假设；主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设；主体 boy 从 room 可触及目标 table；仅为该主体、目标和区域的必要可达假设；主体 boy 平稳移动 table 时采用准静态假设，保持支撑且无滑落；不保证真实物理过程",
+  "modeling_scope": "RULE/TEXT 事件模型：显式文本、常识假设与未知分开；时间先后不自动构成因果；不作严格因果效应推断",
+  "scene": {
+    "entities": [
+      {
+        "id": "room",
+        "kind": "room",
+        "role": "environment",
+        "label": "房间",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "房间",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "wall",
+        "kind": "wall",
+        "role": "environment",
+        "label": "墙",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "墙上挂着一幅画",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "door",
+        "kind": "door",
+        "role": "object",
+        "label": "门",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "房间里有一扇关闭的门",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "painting",
+        "kind": "painting",
+        "role": "object",
+        "label": "画",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "墙上挂着一幅画",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "cup",
+        "kind": "cup",
+        "role": "object",
+        "label": "水杯",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "桌上放着一个水杯",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "table",
+        "kind": "table",
+        "role": "object",
+        "label": "桌子",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "桌上放着一个水杯",
+          "explanation": ""
+        }
+      },
+      {
+        "id": "boy",
+        "kind": "person",
+        "role": "subject",
+        "label": "男孩",
+        "evidence": {
+          "basis": "explicit_text",
+          "quote": "男孩",
+          "explanation": ""
+        }
+      }
+    ],
+    "world": {
+      "setting": "房间"
+    },
+    "initial_state": {
+      "room.location": "scene",
+      "room.position": "unspecified",
+      "wall.location": "room",
+      "wall.position": "unspecified",
+      "door.location": "room",
+      "door.position": "unspecified",
+      "door.supported_by": null,
+      "door.attached_to": null,
+      "door.held_by": null,
+      "door.open": "closed",
+      "door.locked": false,
+      "door.connects": "room",
+      "painting.location": "wall",
+      "painting.position": "unspecified",
+      "painting.supported_by": null,
+      "painting.attached_to": "wall",
+      "painting.held_by": null,
+      "painting.pose": "hanging",
+      "cup.location": "table",
+      "cup.position": "unspecified",
+      "cup.supported_by": "table",
+      "cup.attached_to": null,
+      "cup.held_by": null,
+      "cup.pose": "upright",
+      "table.location": "room",
+      "table.position": "unspecified",
+      "table.supported_by": null,
+      "table.attached_to": null,
+      "table.held_by": null,
+      "table.motion": "stationary",
+      "table.support": "stable",
+      "boy.location": "outside",
+      "boy.position": "unspecified",
+      "boy.holding": null,
+      "boy.action": "idle",
+      "room.root_location": "room",
+      "room.world_position": "room:unspecified",
+      "wall.root_location": "room",
+      "wall.world_position": "room:wall=unspecified",
+      "door.root_location": "room",
+      "door.world_position": "room:door=unspecified",
+      "painting.root_location": "room",
+      "painting.world_position": "room:wall=unspecified/painting=unspecified",
+      "cup.root_location": "room",
+      "cup.world_position": "room:table=unspecified/cup=unspecified",
+      "table.root_location": "room",
+      "table.world_position": "room:table=unspecified",
+      "boy.root_location": "outside",
+      "boy.world_position": "outside:boy=unspecified"
+    },
+    "assumptions": [
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "场景根节点仅作空间登记，不表示新增可见物体"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "原文提到的墙属于同一已登记场景"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "未明确单独位置的器物位于同一已登记场景，具体位置保持未指定"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "原文没有上锁信息；为执行开门假设门未锁"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "已提到的门作为同一场景的入口；不引入第二个房间"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "未给姿态的水杯或箱子初始直立；不假设倾倒、破碎或泼洒"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "器物在动作开始前静止，不把未来移动结果写入初态"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "已登记桌子或箱子作为稳定支撑体；不额外生成支撑面或器物"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "进入场景的人物初始位于入口外，入口可达；不允许穿越关闭的门"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "人物初始空手；拿起和放置必须满足实际状态前置，不能预置未来手持结果"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "动作开始前人物空闲；只在对应进行时展示动作姿态"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "入口外的人物可以触及已登记入口门；未说明的可达性仅作为必要动作假设"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "主体 boy 从 room 可触及目标 table；仅为该主体、目标和区域的必要可达假设"
+      },
+      {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "主体 boy 平稳移动 table 时采用准静态假设，保持支撑且无滑落；不保证真实物理过程"
+      }
+    ],
+    "continuity": {
+      "source": "continuity_design",
+      "design": "已登记环境与器物身份固定；未说明外观保持简洁中性",
+      "constraints": [
+        "先环境、器物，再主体和动作",
+        "只有动作及关系传播可以改变状态",
+        "无关器物保留原有位置与姿态",
+        "时间顺序不自动构成因果"
+      ]
+    },
+    "element_model": {
+      "version": "1.0",
+      "construction_order": [
+        "environment",
+        "objects",
+        "subjects"
+      ],
+      "environment_ids": [
+        "room",
+        "wall"
+      ],
+      "object_ids": [
+        "door",
+        "painting",
+        "cup",
+        "table"
+      ],
+      "subject_ids": [
+        "boy"
+      ],
+      "relations": [
+        {
+          "source": "door",
+          "target": "room",
+          "relation": "connects",
+          "scope": "initial_state",
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "已提到的门作为同一场景的入口；不引入第二个房间"
+          }
+        },
+        {
+          "source": "painting",
+          "target": "wall",
+          "relation": "attached_to",
+          "scope": "initial_state",
+          "evidence": {
+            "basis": "explicit_text",
+            "quote": "墙上挂着一幅画",
+            "explanation": ""
+          }
+        },
+        {
+          "source": "cup",
+          "target": "table",
+          "relation": "supported_by",
+          "scope": "initial_state",
+          "evidence": {
+            "basis": "explicit_text",
+            "quote": "桌上放着一个水杯",
+            "explanation": ""
+          }
+        }
+      ],
+      "relation_scope": "initial_state",
+      "state_sources": {
+        "room.location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "场景根节点仅作空间登记，不表示新增可见物体"
+        },
+        "room.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "原文未给场景根节点的符号位置"
+        },
+        "wall.location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "原文提到的墙属于同一已登记场景"
+        },
+        "wall.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未给墙的符号方位"
+        },
+        "door.location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未明确单独位置的器物位于同一已登记场景，具体位置保持未指定"
+        },
+        "door.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未给器物的相对符号位置"
+        },
+        "door.supported_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "door.attached_to": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "door.held_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "door.open": {
+          "basis": "explicit_text",
+          "quote": "房间里有一扇关闭的门",
+          "explanation": ""
+        },
+        "door.locked": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "原文没有上锁信息；为执行开门假设门未锁"
+        },
+        "door.connects": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "已提到的门作为同一场景的入口；不引入第二个房间"
+        },
+        "painting.location": {
+          "basis": "explicit_text",
+          "quote": "墙上挂着一幅画",
+          "explanation": ""
+        },
+        "painting.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未给器物的相对符号位置"
+        },
+        "painting.supported_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "painting.attached_to": {
+          "basis": "explicit_text",
+          "quote": "墙上挂着一幅画",
+          "explanation": ""
+        },
+        "painting.held_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "painting.pose": {
+          "basis": "explicit_text",
+          "quote": "墙上挂着一幅画",
+          "explanation": ""
+        },
+        "cup.location": {
+          "basis": "explicit_text",
+          "quote": "桌上放着一个水杯",
+          "explanation": ""
+        },
+        "cup.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未给器物的相对符号位置"
+        },
+        "cup.supported_by": {
+          "basis": "explicit_text",
+          "quote": "桌上放着一个水杯",
+          "explanation": ""
+        },
+        "cup.attached_to": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "cup.held_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "cup.pose": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未给姿态的水杯或箱子初始直立；不假设倾倒、破碎或泼洒"
+        },
+        "table.location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未明确单独位置的器物位于同一已登记场景，具体位置保持未指定"
+        },
+        "table.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未给器物的相对符号位置"
+        },
+        "table.supported_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "table.attached_to": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "table.held_by": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "未声明的支撑、固定和手持关系初始为空；不预置任何动作结果"
+        },
+        "table.motion": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "器物在动作开始前静止，不把未来移动结果写入初态"
+        },
+        "table.support": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "已登记桌子或箱子作为稳定支撑体；不额外生成支撑面或器物"
+        },
+        "boy.location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "进入场景的人物初始位于入口外，入口可达；不允许穿越关闭的门"
+        },
+        "boy.position": {
+          "basis": "unknown",
+          "quote": "",
+          "explanation": "未指定人物符号位置"
+        },
+        "boy.holding": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "人物初始空手；拿起和放置必须满足实际状态前置，不能预置未来手持结果"
+        },
+        "boy.action": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "动作开始前人物空闲；只在对应进行时展示动作姿态"
+        },
+        "room.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 room.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "room.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 room.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "wall.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 wall.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "wall.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 wall.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "door.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 door.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "door.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 door.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "painting.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 painting.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "painting.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 painting.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "cup.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 cup.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "cup.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 cup.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "table.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 table.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "table.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 table.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "boy.root_location": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 boy.root_location；仅为登记世界内的规则前向推演，不是数据识别因果"
+        },
+        "boy.world_position": {
+          "basis": "commonsense_assumption",
+          "quote": "",
+          "explanation": "从已登记的 location 与 position 链计算 boy.world_position；仅为登记世界内的规则前向推演，不是数据识别因果"
+        }
+      },
+      "action_conditions": [
+        {
+          "event_id": "e1",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "door",
+          "from_location": "outside",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设"
+          }
+        },
+        {
+          "event_id": "e2",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "door",
+          "from_location": "outside",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设"
+          }
+        },
+        {
+          "event_id": "e3",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "table",
+          "from_location": "room",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 room 可触及目标 table；仅为该主体、目标和区域的必要可达假设"
+          }
+        },
+        {
+          "event_id": "e3",
+          "kind": "support_preserved",
+          "actor": "boy",
+          "target": "table",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 平稳移动 table 时采用准静态假设，保持支撑且无滑落；不保证真实物理过程"
+          }
+        }
+      ],
+      "rule_catalog": {
+        "open_door": {
+          "description": "门未锁且可达时，由关闭转换为打开",
+          "basis": "rule_based_not_data_identified"
+        },
+        "close_door": {
+          "description": "门可达时，由打开转换为关闭",
+          "basis": "rule_based_not_data_identified"
+        },
+        "enter_room": {
+          "description": "仅从门外通过已打开且连接目的区域的门进入",
+          "basis": "rule_based_not_data_identified"
+        },
+        "pick_up": {
+          "description": "空手主体取走可达、未固定的器物，同时解除原支撑",
+          "basis": "rule_based_not_data_identified"
+        },
+        "place_on": {
+          "description": "把手持器物放到可达的稳定支撑体，保持原姿态",
+          "basis": "rule_based_not_data_identified"
+        },
+        "move_object": {
+          "description": "在同一区域内改变未固定器物的位置；支撑物传播需要明确平稳假设",
+          "basis": "rule_based_not_data_identified"
+        },
+        "inherit_location": {
+          "description": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素",
+          "basis": "rule_based_not_data_identified"
+        },
+        "action_complete": {
+          "description": "动作结束后主体回到 idle，不扩展额外情节",
+          "basis": "rule_based_not_data_identified"
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "id": "e1",
+      "kind": "open_door",
+      "label": "一个男孩打开门",
+      "participants": [
+        "boy",
+        "door"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "一个男孩打开门",
+        "explanation": ""
+      },
+      "action": {
+        "actor": "boy",
+        "target": "door"
+      },
+      "keyframes": {
+        "before": "人物准备打开尚未打开的门",
+        "during": "人物正在打开同一扇门",
+        "after": "门已打开，人物位置由当前状态决定"
+      },
+      "preconditions": {
+        "boy.location": "outside",
+        "door.root_location": "room",
+        "door.open": "closed",
+        "door.locked": false
+      },
+      "required_conditions": [
+        {
+          "event_id": "e1",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "door",
+          "from_location": "outside",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设"
+          }
+        }
+      ],
+      "updates": {
+        "door.open": "open"
+      },
+      "active_state": {
+        "boy.action": "opening"
+      }
+    },
+    {
+      "id": "e2",
+      "kind": "enter_room",
+      "label": "然后走进房间",
+      "participants": [
+        "boy",
+        "door",
+        "room"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "然后走进房间",
+        "explanation": ""
+      },
+      "action": {
+        "actor": "boy",
+        "target": "door",
+        "destination": "room"
+      },
+      "keyframes": {
+        "before": "人物在已打开的入口外",
+        "during": "人物正通过打开的门进入场景",
+        "after": "人物已进入场景，门保留此前状态"
+      },
+      "preconditions": {
+        "boy.location": "outside",
+        "door.root_location": "room",
+        "door.connects": "room",
+        "door.open": "open"
+      },
+      "required_conditions": [
+        {
+          "event_id": "e2",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "door",
+          "from_location": "outside",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 outside 可触及目标 door；仅为该主体、目标和区域的必要可达假设"
+          }
+        }
+      ],
+      "updates": {
+        "boy.location": "room",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "active_state": {
+        "boy.action": "entering"
+      }
+    },
+    {
+      "id": "e3",
+      "kind": "move_object",
+      "label": "再平稳地把桌子移到房间右侧",
+      "participants": [
+        "boy",
+        "table"
+      ],
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "再平稳地把桌子移到房间右侧",
+        "explanation": ""
+      },
+      "action": {
+        "actor": "boy",
+        "target": "table",
+        "position": "right",
+        "transport_mode": "quasistatic"
+      },
+      "keyframes": {
+        "before": "目标器物尚在移动前位置",
+        "during": "人物正平稳移动目标器物，原有支撑保持",
+        "after": "器物已到明确目标位置，原有支撑保持"
+      },
+      "preconditions": {
+        "boy.location": "room",
+        "boy.root_location": "room",
+        "table.location": "room",
+        "table.root_location": "room",
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.supported_by": null,
+        "table.motion": "stationary",
+        "room.location": "scene",
+        "wall.location": "room",
+        "door.location": "room",
+        "painting.location": "wall",
+        "cup.location": "table",
+        "cup.supported_by": "table"
+      },
+      "required_conditions": [
+        {
+          "event_id": "e3",
+          "kind": "reachable",
+          "actor": "boy",
+          "target": "table",
+          "from_location": "room",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 从 room 可触及目标 table；仅为该主体、目标和区域的必要可达假设"
+          }
+        },
+        {
+          "event_id": "e3",
+          "kind": "support_preserved",
+          "actor": "boy",
+          "target": "table",
+          "value": true,
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "主体 boy 平稳移动 table 时采用准静态假设，保持支撑且无滑落；不保证真实物理过程"
+          }
+        }
+      ],
+      "updates": {
+        "table.position": "right",
+        "cup.world_position": "room:table=right/cup=unspecified",
+        "table.world_position": "room:table=right"
+      },
+      "active_state": {
+        "table.position": "in_transit",
+        "table.motion": "moving",
+        "boy.action": "moving_object",
+        "cup.world_position": "room:table=in_transit/cup=unspecified",
+        "table.world_position": "room:table=in_transit"
+      }
+    }
+  ],
+  "temporal_relations": [
+    {
+      "source": "e1",
+      "target": "e2",
+      "relation": "before",
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "然后",
+        "explanation": ""
+      }
+    },
+    {
+      "source": "e2",
+      "target": "e3",
+      "relation": "before",
+      "evidence": {
+        "basis": "explicit_text",
+        "quote": "再",
+        "explanation": ""
+      }
+    }
+  ],
+  "causal_relations": [],
+  "unresolved_causal_relations": [
+    {
+      "source": "e1",
+      "target": "e2",
+      "evidence": {
+        "basis": "unknown",
+        "quote": "然后",
+        "explanation": "动作先后不自动提供因果依据；世界引擎另外检查状态前置"
+      }
+    },
+    {
+      "source": "e2",
+      "target": "e3",
+      "evidence": {
+        "basis": "unknown",
+        "quote": "再",
+        "explanation": "动作先后不自动提供因果依据；世界引擎另外检查状态前置"
+      }
+    }
+  ],
+  "element_trace": [
+    {
+      "event_id": "e1",
+      "before": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "closed",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "after": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "direct_effects": [
+        {
+          "entity": "door",
+          "property": "open",
+          "before": "closed",
+          "after": "open",
+          "rule_id": "open_door",
+          "evidence": {
+            "basis": "explicit_text",
+            "quote": "一个男孩打开门",
+            "explanation": "；门未锁且可达时，由关闭转换为打开；规则推演不代表数据识别因果"
+          }
+        }
+      ],
+      "propagated_effects": [],
+      "unchanged_entities": [
+        "room",
+        "wall",
+        "painting",
+        "cup",
+        "table",
+        "boy"
+      ],
+      "unresolved_effects": []
+    },
+    {
+      "event_id": "e2",
+      "before": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "after": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "direct_effects": [
+        {
+          "entity": "boy",
+          "property": "location",
+          "before": "outside",
+          "after": "room",
+          "rule_id": "enter_room",
+          "evidence": {
+            "basis": "explicit_text",
+            "quote": "然后走进房间",
+            "explanation": "；仅从门外通过已打开且连接目的区域的门进入；规则推演不代表数据识别因果"
+          }
+        }
+      ],
+      "propagated_effects": [
+        {
+          "entity": "boy",
+          "property": "root_location",
+          "before": "outside",
+          "after": "room",
+          "rule_id": "inherit_location",
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素；仅为登记世界内的规则前向推演，不是数据识别因果；按登记的位置链计算最近区域及位置；父元素变动传播到子元素；规则推演不代表数据识别因果"
+          }
+        },
+        {
+          "entity": "boy",
+          "property": "world_position",
+          "before": "outside:boy=unspecified",
+          "after": "room:boy=unspecified",
+          "rule_id": "inherit_location",
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素；仅为登记世界内的规则前向推演，不是数据识别因果；按登记的位置链计算最近区域及位置；父元素变动传播到子元素；规则推演不代表数据识别因果"
+          }
+        }
+      ],
+      "unchanged_entities": [
+        "room",
+        "wall",
+        "door",
+        "painting",
+        "cup",
+        "table"
+      ],
+      "unresolved_effects": []
+    },
+    {
+      "event_id": "e3",
+      "before": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "after": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "right",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=right/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=right",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "direct_effects": [
+        {
+          "entity": "table",
+          "property": "position",
+          "before": "unspecified",
+          "after": "right",
+          "rule_id": "move_object",
+          "evidence": {
+            "basis": "explicit_text",
+            "quote": "再平稳地把桌子移到房间右侧",
+            "explanation": "；在同一区域内改变未固定器物的位置；支撑物传播需要明确平稳假设；规则推演不代表数据识别因果"
+          }
+        }
+      ],
+      "propagated_effects": [
+        {
+          "entity": "cup",
+          "property": "world_position",
+          "before": "room:table=unspecified/cup=unspecified",
+          "after": "room:table=right/cup=unspecified",
+          "rule_id": "inherit_location",
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素；仅为登记世界内的规则前向推演，不是数据识别因果；按登记的位置链计算最近区域及位置；父元素变动传播到子元素；规则推演不代表数据识别因果"
+          }
+        },
+        {
+          "entity": "table",
+          "property": "world_position",
+          "before": "room:table=unspecified",
+          "after": "room:table=right",
+          "rule_id": "inherit_location",
+          "evidence": {
+            "basis": "commonsense_assumption",
+            "quote": "",
+            "explanation": "按登记的位置链计算最近区域及位置；父元素变动传播到子元素；仅为登记世界内的规则前向推演，不是数据识别因果；按登记的位置链计算最近区域及位置；父元素变动传播到子元素；规则推演不代表数据识别因果"
+          }
+        }
+      ],
+      "unchanged_entities": [
+        "room",
+        "wall",
+        "door",
+        "painting",
+        "boy"
+      ],
+      "unresolved_effects": [
+        {
+          "entity": "table",
+          "rule_id": "conditional_support",
+          "evidence": {
+            "basis": "unknown",
+            "quote": "",
+            "explanation": "支撑后代仅在结构化平稳无滑落条件下保持；未进行动力学验证"
+          }
+        },
+        {
+          "entity": "table",
+          "rule_id": "unmodeled_physics",
+          "evidence": {
+            "basis": "unknown",
+            "quote": "",
+            "explanation": "未给风、震动、摩擦或加速度数据；不判定额外滑落、倾倒、泼洒或破碎。支撑保持仅在明确平稳假设范围内成立"
+          }
+        }
+      ]
+    }
+  ],
+  "state_dependencies": [
+    {
+      "source": "e1",
+      "target": "e2",
+      "relation": "enables_under_rules",
+      "state_keys": [
+        "door.open"
+      ],
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "前一动作的状态输出满足本动作读取的前置或载荷拓扑条件；这是规则执行依赖，不承诺为最小因果集合；仅为登记世界内的规则前向推演，不是数据识别因果"
+      }
+    },
+    {
+      "source": "e2",
+      "target": "e3",
+      "relation": "enables_under_rules",
+      "state_keys": [
+        "boy.location",
+        "boy.root_location"
+      ],
+      "evidence": {
+        "basis": "commonsense_assumption",
+        "quote": "",
+        "explanation": "前一动作的状态输出满足本动作读取的前置或载荷拓扑条件；这是规则执行依赖，不承诺为最小因果集合；仅为登记世界内的规则前向推演，不是数据识别因果"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "event_id": "e1",
+      "start_s": 0.0,
+      "end_s": 2.0
+    },
+    {
+      "event_id": "e2",
+      "start_s": 2.0,
+      "end_s": 4.0
+    },
+    {
+      "event_id": "e3",
+      "start_s": 4.0,
+      "end_s": 6.0
+    }
+  ],
+  "shots": [
+    {
+      "id": "s01",
+      "start_s": 0.0,
+      "end_s": 2.0,
+      "event_ids": [
+        "e1"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e1",
+          "occurrence_id": "e1",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：一个男孩打开门",
+      "start_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "closed",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "end_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "keyframe": {
+        "time_s": 2.0,
+        "event_id": "e1",
+        "phase": "after",
+        "state": {
+          "room.location": "scene",
+          "room.position": "unspecified",
+          "wall.location": "room",
+          "wall.position": "unspecified",
+          "door.location": "room",
+          "door.position": "unspecified",
+          "door.supported_by": null,
+          "door.attached_to": null,
+          "door.held_by": null,
+          "door.open": "open",
+          "door.locked": false,
+          "door.connects": "room",
+          "painting.location": "wall",
+          "painting.position": "unspecified",
+          "painting.supported_by": null,
+          "painting.attached_to": "wall",
+          "painting.held_by": null,
+          "painting.pose": "hanging",
+          "cup.location": "table",
+          "cup.position": "unspecified",
+          "cup.supported_by": "table",
+          "cup.attached_to": null,
+          "cup.held_by": null,
+          "cup.pose": "upright",
+          "table.location": "room",
+          "table.position": "unspecified",
+          "table.supported_by": null,
+          "table.attached_to": null,
+          "table.held_by": null,
+          "table.motion": "stationary",
+          "table.support": "stable",
+          "boy.location": "outside",
+          "boy.position": "unspecified",
+          "boy.holding": null,
+          "boy.action": "idle",
+          "room.root_location": "room",
+          "room.world_position": "room:unspecified",
+          "wall.root_location": "room",
+          "wall.world_position": "room:wall=unspecified",
+          "door.root_location": "room",
+          "door.world_position": "room:door=unspecified",
+          "painting.root_location": "room",
+          "painting.world_position": "room:wall=unspecified/painting=unspecified",
+          "cup.root_location": "room",
+          "cup.world_position": "room:table=unspecified/cup=unspecified",
+          "table.root_location": "room",
+          "table.world_position": "room:table=unspecified",
+          "boy.root_location": "outside",
+          "boy.world_position": "outside:boy=unspecified"
+        }
+      },
+      "presentation": {
+        "shot_size": "全景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['房间', '墙', '门', '画', '水杯', '桌子', '男孩']。连续性设计：{'source': 'continuity_design', 'design': '已登记环境与器物身份固定；未说明外观保持简洁中性', 'constraints': ['先环境、器物，再主体和动作', '只有动作及关系传播可以改变状态', '无关器物保留原有位置与姿态', '时间顺序不自动构成因果']}。世界空间约束：{'setting': '房间'}。只画一个具体瞬间：门已打开，人物位置由当前状态决定。该瞬间完整状态：{'room.location': 'scene', 'room.position': 'unspecified', 'wall.location': 'room', 'wall.position': 'unspecified', 'door.location': 'room', 'door.position': 'unspecified', 'door.supported_by': None, 'door.attached_to': None, 'door.held_by': None, 'door.open': 'open', 'door.locked': False, 'door.connects': 'room', 'painting.location': 'wall', 'painting.position': 'unspecified', 'painting.supported_by': None, 'painting.attached_to': 'wall', 'painting.held_by': None, 'painting.pose': 'hanging', 'cup.location': 'table', 'cup.position': 'unspecified', 'cup.supported_by': 'table', 'cup.attached_to': None, 'cup.held_by': None, 'cup.pose': 'upright', 'table.location': 'room', 'table.position': 'unspecified', 'table.supported_by': None, 'table.attached_to': None, 'table.held_by': None, 'table.motion': 'stationary', 'table.support': 'stable', 'boy.location': 'outside', 'boy.position': 'unspecified', 'boy.holding': None, 'boy.action': 'idle', 'room.root_location': 'room', 'room.world_position': 'room:unspecified', 'wall.root_location': 'room', 'wall.world_position': 'room:wall=unspecified', 'door.root_location': 'room', 'door.world_position': 'room:door=unspecified', 'painting.root_location': 'room', 'painting.world_position': 'room:wall=unspecified/painting=unspecified', 'cup.root_location': 'room', 'cup.world_position': 'room:table=unspecified/cup=unspecified', 'table.root_location': 'room', 'table.world_position': 'room:table=unspecified', 'boy.root_location': 'outside', 'boy.world_position': 'outside:boy=unspecified'}。摄影设计：{'shot_size': '全景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。元素身份登记：[('room', 'room', '房间'), ('wall', 'wall', '墙'), ('door', 'door', '门'), ('painting', 'painting', '画'), ('cup', 'cup', '水杯'), ('table', 'table', '桌子'), ('boy', 'person', '男孩')]。器物相对支撑、固定、手持关系和派生全局位置以该瞬间完整状态为准；初始关系仅描述初态，不能覆盖拿起或放下后的关系。没有直接效果或关系传播的元素保持原位置、姿态与身份；人物动作不自动使墙画等器物移动。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    },
+    {
+      "id": "s02",
+      "start_s": 2.0,
+      "end_s": 4.0,
+      "event_ids": [
+        "e2"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e2",
+          "occurrence_id": "e2",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：然后走进房间",
+      "start_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "outside",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "outside",
+        "boy.world_position": "outside:boy=unspecified"
+      },
+      "end_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "keyframe": {
+        "time_s": 4.0,
+        "event_id": "e2",
+        "phase": "after",
+        "state": {
+          "room.location": "scene",
+          "room.position": "unspecified",
+          "wall.location": "room",
+          "wall.position": "unspecified",
+          "door.location": "room",
+          "door.position": "unspecified",
+          "door.supported_by": null,
+          "door.attached_to": null,
+          "door.held_by": null,
+          "door.open": "open",
+          "door.locked": false,
+          "door.connects": "room",
+          "painting.location": "wall",
+          "painting.position": "unspecified",
+          "painting.supported_by": null,
+          "painting.attached_to": "wall",
+          "painting.held_by": null,
+          "painting.pose": "hanging",
+          "cup.location": "table",
+          "cup.position": "unspecified",
+          "cup.supported_by": "table",
+          "cup.attached_to": null,
+          "cup.held_by": null,
+          "cup.pose": "upright",
+          "table.location": "room",
+          "table.position": "unspecified",
+          "table.supported_by": null,
+          "table.attached_to": null,
+          "table.held_by": null,
+          "table.motion": "stationary",
+          "table.support": "stable",
+          "boy.location": "room",
+          "boy.position": "unspecified",
+          "boy.holding": null,
+          "boy.action": "idle",
+          "room.root_location": "room",
+          "room.world_position": "room:unspecified",
+          "wall.root_location": "room",
+          "wall.world_position": "room:wall=unspecified",
+          "door.root_location": "room",
+          "door.world_position": "room:door=unspecified",
+          "painting.root_location": "room",
+          "painting.world_position": "room:wall=unspecified/painting=unspecified",
+          "cup.root_location": "room",
+          "cup.world_position": "room:table=unspecified/cup=unspecified",
+          "table.root_location": "room",
+          "table.world_position": "room:table=unspecified",
+          "boy.root_location": "room",
+          "boy.world_position": "room:boy=unspecified"
+        }
+      },
+      "presentation": {
+        "shot_size": "中景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['房间', '墙', '门', '画', '水杯', '桌子', '男孩']。连续性设计：{'source': 'continuity_design', 'design': '已登记环境与器物身份固定；未说明外观保持简洁中性', 'constraints': ['先环境、器物，再主体和动作', '只有动作及关系传播可以改变状态', '无关器物保留原有位置与姿态', '时间顺序不自动构成因果']}。世界空间约束：{'setting': '房间'}。只画一个具体瞬间：人物已进入场景，门保留此前状态。该瞬间完整状态：{'room.location': 'scene', 'room.position': 'unspecified', 'wall.location': 'room', 'wall.position': 'unspecified', 'door.location': 'room', 'door.position': 'unspecified', 'door.supported_by': None, 'door.attached_to': None, 'door.held_by': None, 'door.open': 'open', 'door.locked': False, 'door.connects': 'room', 'painting.location': 'wall', 'painting.position': 'unspecified', 'painting.supported_by': None, 'painting.attached_to': 'wall', 'painting.held_by': None, 'painting.pose': 'hanging', 'cup.location': 'table', 'cup.position': 'unspecified', 'cup.supported_by': 'table', 'cup.attached_to': None, 'cup.held_by': None, 'cup.pose': 'upright', 'table.location': 'room', 'table.position': 'unspecified', 'table.supported_by': None, 'table.attached_to': None, 'table.held_by': None, 'table.motion': 'stationary', 'table.support': 'stable', 'boy.location': 'room', 'boy.position': 'unspecified', 'boy.holding': None, 'boy.action': 'idle', 'room.root_location': 'room', 'room.world_position': 'room:unspecified', 'wall.root_location': 'room', 'wall.world_position': 'room:wall=unspecified', 'door.root_location': 'room', 'door.world_position': 'room:door=unspecified', 'painting.root_location': 'room', 'painting.world_position': 'room:wall=unspecified/painting=unspecified', 'cup.root_location': 'room', 'cup.world_position': 'room:table=unspecified/cup=unspecified', 'table.root_location': 'room', 'table.world_position': 'room:table=unspecified', 'boy.root_location': 'room', 'boy.world_position': 'room:boy=unspecified'}。摄影设计：{'shot_size': '中景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。元素身份登记：[('room', 'room', '房间'), ('wall', 'wall', '墙'), ('door', 'door', '门'), ('painting', 'painting', '画'), ('cup', 'cup', '水杯'), ('table', 'table', '桌子'), ('boy', 'person', '男孩')]。器物相对支撑、固定、手持关系和派生全局位置以该瞬间完整状态为准；初始关系仅描述初态，不能覆盖拿起或放下后的关系。没有直接效果或关系传播的元素保持原位置、姿态与身份；人物动作不自动使墙画等器物移动。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    },
+    {
+      "id": "s03",
+      "start_s": 4.0,
+      "end_s": 6.0,
+      "event_ids": [
+        "e3"
+      ],
+      "event_refs": [
+        {
+          "event_id": "e3",
+          "occurrence_id": "e3",
+          "stage": "whole"
+        }
+      ],
+      "description": "同一发生的阶段细分：再平稳地把桌子移到房间右侧",
+      "start_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "unspecified",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=unspecified/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=unspecified",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "end_state": {
+        "room.location": "scene",
+        "room.position": "unspecified",
+        "wall.location": "room",
+        "wall.position": "unspecified",
+        "door.location": "room",
+        "door.position": "unspecified",
+        "door.supported_by": null,
+        "door.attached_to": null,
+        "door.held_by": null,
+        "door.open": "open",
+        "door.locked": false,
+        "door.connects": "room",
+        "painting.location": "wall",
+        "painting.position": "unspecified",
+        "painting.supported_by": null,
+        "painting.attached_to": "wall",
+        "painting.held_by": null,
+        "painting.pose": "hanging",
+        "cup.location": "table",
+        "cup.position": "unspecified",
+        "cup.supported_by": "table",
+        "cup.attached_to": null,
+        "cup.held_by": null,
+        "cup.pose": "upright",
+        "table.location": "room",
+        "table.position": "right",
+        "table.supported_by": null,
+        "table.attached_to": null,
+        "table.held_by": null,
+        "table.motion": "stationary",
+        "table.support": "stable",
+        "boy.location": "room",
+        "boy.position": "unspecified",
+        "boy.holding": null,
+        "boy.action": "idle",
+        "room.root_location": "room",
+        "room.world_position": "room:unspecified",
+        "wall.root_location": "room",
+        "wall.world_position": "room:wall=unspecified",
+        "door.root_location": "room",
+        "door.world_position": "room:door=unspecified",
+        "painting.root_location": "room",
+        "painting.world_position": "room:wall=unspecified/painting=unspecified",
+        "cup.root_location": "room",
+        "cup.world_position": "room:table=right/cup=unspecified",
+        "table.root_location": "room",
+        "table.world_position": "room:table=right",
+        "boy.root_location": "room",
+        "boy.world_position": "room:boy=unspecified"
+      },
+      "keyframe": {
+        "time_s": 6.0,
+        "event_id": "e3",
+        "phase": "after",
+        "state": {
+          "room.location": "scene",
+          "room.position": "unspecified",
+          "wall.location": "room",
+          "wall.position": "unspecified",
+          "door.location": "room",
+          "door.position": "unspecified",
+          "door.supported_by": null,
+          "door.attached_to": null,
+          "door.held_by": null,
+          "door.open": "open",
+          "door.locked": false,
+          "door.connects": "room",
+          "painting.location": "wall",
+          "painting.position": "unspecified",
+          "painting.supported_by": null,
+          "painting.attached_to": "wall",
+          "painting.held_by": null,
+          "painting.pose": "hanging",
+          "cup.location": "table",
+          "cup.position": "unspecified",
+          "cup.supported_by": "table",
+          "cup.attached_to": null,
+          "cup.held_by": null,
+          "cup.pose": "upright",
+          "table.location": "room",
+          "table.position": "right",
+          "table.supported_by": null,
+          "table.attached_to": null,
+          "table.held_by": null,
+          "table.motion": "stationary",
+          "table.support": "stable",
+          "boy.location": "room",
+          "boy.position": "unspecified",
+          "boy.holding": null,
+          "boy.action": "idle",
+          "room.root_location": "room",
+          "room.world_position": "room:unspecified",
+          "wall.root_location": "room",
+          "wall.world_position": "room:wall=unspecified",
+          "door.root_location": "room",
+          "door.world_position": "room:door=unspecified",
+          "painting.root_location": "room",
+          "painting.world_position": "room:wall=unspecified/painting=unspecified",
+          "cup.root_location": "room",
+          "cup.world_position": "room:table=right/cup=unspecified",
+          "table.root_location": "room",
+          "table.world_position": "room:table=right",
+          "boy.root_location": "room",
+          "boy.world_position": "room:boy=unspecified"
+        }
+      },
+      "presentation": {
+        "shot_size": "中景",
+        "height": "主体所在平面附近，能够看清已有支撑面",
+        "pitch": "轻微俯视",
+        "camera_movement": "固定机位",
+        "composition": "保持主体、运动方向与空间关系清晰",
+        "light_color": "中性柔光；保留原文指定颜色",
+        "edit": "连续切换",
+        "sound": "未指定"
+      },
+      "image_prompt": "风格：简洁写实的连续性故事板，主体与场景外观保持一致。主体原文描述：['房间', '墙', '门', '画', '水杯', '桌子', '男孩']。连续性设计：{'source': 'continuity_design', 'design': '已登记环境与器物身份固定；未说明外观保持简洁中性', 'constraints': ['先环境、器物，再主体和动作', '只有动作及关系传播可以改变状态', '无关器物保留原有位置与姿态', '时间顺序不自动构成因果']}。世界空间约束：{'setting': '房间'}。只画一个具体瞬间：器物已到明确目标位置，原有支撑保持。该瞬间完整状态：{'room.location': 'scene', 'room.position': 'unspecified', 'wall.location': 'room', 'wall.position': 'unspecified', 'door.location': 'room', 'door.position': 'unspecified', 'door.supported_by': None, 'door.attached_to': None, 'door.held_by': None, 'door.open': 'open', 'door.locked': False, 'door.connects': 'room', 'painting.location': 'wall', 'painting.position': 'unspecified', 'painting.supported_by': None, 'painting.attached_to': 'wall', 'painting.held_by': None, 'painting.pose': 'hanging', 'cup.location': 'table', 'cup.position': 'unspecified', 'cup.supported_by': 'table', 'cup.attached_to': None, 'cup.held_by': None, 'cup.pose': 'upright', 'table.location': 'room', 'table.position': 'right', 'table.supported_by': None, 'table.attached_to': None, 'table.held_by': None, 'table.motion': 'stationary', 'table.support': 'stable', 'boy.location': 'room', 'boy.position': 'unspecified', 'boy.holding': None, 'boy.action': 'idle', 'room.root_location': 'room', 'room.world_position': 'room:unspecified', 'wall.root_location': 'room', 'wall.world_position': 'room:wall=unspecified', 'door.root_location': 'room', 'door.world_position': 'room:door=unspecified', 'painting.root_location': 'room', 'painting.world_position': 'room:wall=unspecified/painting=unspecified', 'cup.root_location': 'room', 'cup.world_position': 'room:table=right/cup=unspecified', 'table.root_location': 'room', 'table.world_position': 'room:table=right', 'boy.root_location': 'room', 'boy.world_position': 'room:boy=unspecified'}。摄影设计：{'shot_size': '中景', 'height': '主体所在平面附近，能够看清已有支撑面', 'pitch': '轻微俯视', 'camera_movement': '固定机位', 'composition': '保持主体、运动方向与空间关系清晰', 'light_color': '中性柔光；保留原文指定颜色', 'edit': '连续切换', 'sound': '未指定'}。原文只作为身份和外观依据；只展示上述时刻的姿态，不在单图内串联完整动作，不添加原文之外的泼洒、破碎、反应、跳跃或新角色。元素身份登记：[('room', 'room', '房间'), ('wall', 'wall', '墙'), ('door', 'door', '门'), ('painting', 'painting', '画'), ('cup', 'cup', '水杯'), ('table', 'table', '桌子'), ('boy', 'person', '男孩')]。器物相对支撑、固定、手持关系和派生全局位置以该瞬间完整状态为准；初始关系仅描述初态，不能覆盖拿起或放下后的关系。没有直接效果或关系传播的元素保持原位置、姿态与身份；人物动作不自动使墙画等器物移动。",
+      "image": {
+        "status": "not_requested",
+        "path": null
+      }
+    }
+  ],
+  "generation_kind": "STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO"
+}
