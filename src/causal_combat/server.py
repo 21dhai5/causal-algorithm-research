@@ -1,15 +1,20 @@
-"""只监听回环的仙侠交互服务；固定资源和受限JSON输入，不接受远端或文件参数。"""
+"""只监听回环的VFX提示词服务；固定资源和受限JSON输入，不执行渲染。"""
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import socket
 
-from .core import DEFAULT_TEXT, MODE, build_combat
+from .core import DEFAULT_ELEMENTS, DEFAULT_INTERACTIONS, DEFAULT_TEXT, MODE, generate_prompt
 
 
-MAX_BODY_BYTES = 32768  # JSON整体字节数限制，独立于简报的4000字符限制。
-DEFAULTS = {"text": DEFAULT_TEXT, "charge": 0.8, "distance_m": 8, "shield": 50, "aim_offset_m": 0, "seed": 7}  # 页面和空JSON请求共用的设计参数。
+MAX_BODY_BYTES = 256 * 1024  # 请求JSON的字节上限，独立于生成器的字符和清单数量限制。
+MAX_PAGE_BYTES = 2 * 1024 * 1024  # 固定静态资源也只作有界读取。
+DEFAULTS = {  # 可加载、替换或清空的示例创作数据，不注入自定义场景。
+    "text": DEFAULT_TEXT,  # 示例逐行结构化场景。
+    "elements": DEFAULT_ELEMENTS,  # 逐个具体细节及其显式父子关系。
+    "interactions": DEFAULT_INTERACTIONS,  # 作者条件描述，不求解结果。
+}
 
 
 # 拒绝重复字段，防止浏览器、代理和服务端对同一字段取值产生歧义。
@@ -22,13 +27,13 @@ def _unique_fields(pairs: list) -> dict:
     return fields
 
 
-# 标准JSON不允许NaN或Infinity，不能交给后续数值计算。
+# 标准JSON不允许NaN或Infinity，不能进入作者属性。
 def _invalid_constant(value: str):
     raise ValueError("请求必须使用标准JSON值。")
 
 
 class CombatHTTPServer(ThreadingHTTPServer):
-    """每条请求独立生成无共享可变状态的剧本，监听地址不能由客户端修改。"""
+    """每条请求独立编排提示词，监听地址不能由客户端修改。"""
 
     daemon_threads = True  # 关闭服务不等待阻塞的客户端线程。
 
@@ -96,7 +101,7 @@ class CombatRequestHandler(BaseHTTPRequestHandler):
             return False
         return True
 
-    # 固定首页、默认参数、健康状态；绝不将URL转换为文件路径。
+    # 固定首页、示例清单、健康状态；绝不将URL转换为文件路径。
     def do_GET(self) -> None:
         if not self._local_request():
             return
@@ -106,7 +111,10 @@ class CombatRequestHandler(BaseHTTPRequestHandler):
             self._json(200, DEFAULTS)
         elif self.path in ("/", "/web.html"):
             try:
-                content = Path(__file__).with_name("web.html").read_bytes()  # 唯一静态资源固定随包提供，不接收路径参数。
+                with Path(__file__).with_name("web.html").open("rb") as page:  # 唯一静态资源固定随包提供，不接收路径参数。
+                    content = page.read(MAX_PAGE_BYTES + 1)  # 多读一字节用于明确拒绝资源超限。
+                if len(content) > MAX_PAGE_BYTES:
+                    raise OSError("固定资源超过读取上限。")
             except OSError:
                 self._json(503, {"error": "本地页面暂不可用。"})
                 return
@@ -139,17 +147,20 @@ class CombatRequestHandler(BaseHTTPRequestHandler):
             return
         length = int(lengths[0])  # 已拒绝负数、符号、空白和超长整数。
         if length > MAX_BODY_BYTES:
-            self._json(413, {"error": "请求体不能超过32 KiB。"})
+            self._json(413, {"error": "请求体不能超过256 KiB。"})
             return
         try:
             raw = self.rfile.read(length)  # 只读取声明的有限字节数。
             if len(raw) != length:
                 raise ValueError("请求体不完整。")
             body = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_fields, parse_constant=_invalid_constant)  # 拒绝重复键和非标准常量。
-            if not isinstance(body, dict) or set(body).difference(DEFAULTS):
-                raise ValueError("请求只支持text、charge、distance_m、shield、aim_offset_m、seed字段。")
-            self._json(200, build_combat(**body))
+            if not isinstance(body, dict) or "text" not in body or set(body).difference(DEFAULTS):
+                raise ValueError("请求必须包含text，只支持text、elements、interactions字段。")
+            for field in ("elements", "interactions"):  # 显式null不等同于未提供清单。
+                if field in body and not isinstance(body[field], list):
+                    raise ValueError(f"{field}必须是数组。")
+            self._json(200, generate_prompt(**body))
         except (ValueError, TypeError, OverflowError, RecursionError):
-            self._json(400, {"error": "请求必须是有效UTF-8 JSON对象；仅接受支持的字段、非空简报及范围内的有限数值。"})
+            self._json(400, {"error": "请求必须是有效UTF-8 JSON对象，仅含text、elements、interactions；请检查元素及属性上限、唯一ID、有限标量、引用和无环依赖。text最多20000字符，元素最多400项、交互最多600项、每元素属性最多80项、每条细节最多4000字符，原文与清单JSON总字符数最多200000。"})
         except (OSError, socket.timeout):
             self._json(408, {"error": "请求读取超时或连接已断开。"})

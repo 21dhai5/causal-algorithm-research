@@ -45,34 +45,35 @@ jobs:
           assert all(shot['image']['path'] is None and shot['image']['status'] == 'not_requested' for shot in shots)
           assert report['generation_kind'] == 'STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO'
           PY
-      - name: Verify combat branches and causal playback
+      - name: Verify detailed VFX prompts and explicit references
         run: |
           PYTHONPATH=src python -B - <<'PY'
-          from causal_combat import build_combat
-          # scenarios 用四类输入检验同一套规则，不把设计模拟当作实测标签。
-          scenarios = {
-              'hit': {'charge': 0.95, 'distance_m': 6, 'shield': 24},
-              'blocked': {'charge': 0.55, 'shield': 120},
-              'miss': {'aim_offset_m': 4},
-              'insufficient_energy': {'charge': 0},
-          }
-          for kind, parameters in scenarios.items():
-              # report 同时提供素材、事件与状态帧，回放必须从初态到同一终态。
-              report = build_combat(**parameters)
-              assert report['mode'] == 'RULE_BASED_DESIGN_SIMULATION'
-              assert report['outcome']['kind'] == kind
-              assert report['frames'][0]['t_s'] == 0
-              assert report['frames'][0]['state']['attacker.energy'] == report['initial_state']['attacker.energy']
-              assert report['frames'][-1]['state'] == report['final_state']
-              assert report['frames'][-1]['t_s'] == report['duration_s']
-              # contact 为实际接触时刻；未接触的帧禁止提前出现伤害与环境破坏。
-              contact = report['outcome']['impact_time_s']
-              for frame in report['frames']:
-                  if contact is None or frame['t_s'] < contact:
-                      assert frame['state']['defender.hp'] == 100
-                      assert not frame['state']['ground.cracked']
-                      assert frame['state']['camera.shake'] == 0
-              if kind != 'hit':
-                  assert report['final_state']['defender.hp'] == 100
-                  assert not report['final_state']['ground.cracked']
+          from causal_combat import generate_prompt
+          # details 中每处纸灰卷边均独立成项，不能因同名或数量合并。
+          details = [{'id': f'ash{index}', 'name': '纸灰卷边', 'attributes': {'位置': f'原文位置{index}', '状态': '未燃烧'}} for index in range(64)]
+          # interaction 仅是作者限定的描述，不模拟响应是否发生。
+          interaction = {'id': 'r1', 'source_id': 'ash0', 'target_id': 'ash1', 'trigger': '如果前片遮住后片', 'response': '仅被遮区域不可见，尚未发生'}
+          report = generate_prompt('保留两片的前后遮挡条件。', elements=details, interactions=[interaction])
+          assert report['mode'] == 'PROMPT_ONLY'
+          assert len(report['elements']) == len(details)
+          assert 'frames' not in report and 'outcome' not in report
+          for original, generated in zip(details, report['elements']):
+              assert original['attributes'] == generated['attributes']
+              assert original['id'] in generated['prompt']
+              assert original['attributes']['位置'] in report['full_prompt']
+          assert interaction['trigger'] == report['interactions'][0]['trigger']
+          assert interaction['response'] in report['full_prompt']
+          # prose 无法完整拆解时保留原文跨度，不能注入固定示例元素。
+          prose = '雨丝掠过玉簪，窗纸尚未被打湿。'
+          unresolved = generate_prompt(prose)
+          assert unresolved['elements'] == []
+          assert unresolved['extraction_status'] == 'needs_element_details'
+          assert all(prose[item['start']:item['end']] == item['text'] for item in unresolved['unresolved_fragments'])
+          # 循环父级须明确报错，不能生成无法解释的元素依赖。
+          try:
+              generate_prompt('', elements=[{'id': 'a', 'name': 'A', 'parent_id': 'b'}, {'id': 'b', 'name': 'B', 'parent_id': 'a'}])
+          except ValueError:
+              pass
+          else:
+              raise AssertionError('cyclic parents accepted')
           PY

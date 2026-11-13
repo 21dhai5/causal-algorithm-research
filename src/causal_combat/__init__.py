@@ -1,5 +1,5 @@
-"""以规则、状态和固定步长帧驱动的仙侠交互特效设计。"""
+"""依据开放元素清单生成VFX提示词，不执行模拟或渲染。"""
 
-from .core import DEFAULT_TEXT, build_combat
+from .core import DEFAULT_ELEMENTS, DEFAULT_INTERACTIONS, DEFAULT_TEXT, generate_prompt
 
-__all__ = ["DEFAULT_TEXT", "build_combat"]  # 公开接口只负责生成数据，不启动服务或访问文件。
+__all__ = ["DEFAULT_TEXT", "DEFAULT_ELEMENTS", "DEFAULT_INTERACTIONS", "generate_prompt"]  # 公开接口只编排提示词，不启动服务或访问文件。

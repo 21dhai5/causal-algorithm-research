@@ -4,1201 +4,468 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#101316">
-  <title>一剑因果 · 玄幻战斗素材实验室</title>
+  <meta name="theme-color" content="#111719">
+  <title>逐微 · 特效提示词工作台</title>
   <style>
-    /* 深墨底色、玉青反馈和暖金强调组成全站视觉层次；不依赖外部字体。 */
-    :root { --bg:#101316; --panel:#191e22; --panel-soft:#20262b; --border:#30383d; --text:#eceee9; --muted:#a2adae; --jade:#9dd9c3; --gold:#e2bd7f; --danger:#f1a38f; --radius:15px; }
+    /* 使用本地字体和静态布局，让大量文字与细节数据保持可读。 */
+    :root { --bg:#111719; --panel:#192124; --soft:#202b2e; --line:#344246; --text:#e7efeb; --muted:#a8b9b5; --jade:#a2e0c6; --gold:#e5c28c; --danger:#ffb3a5; }
     * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 "Microsoft YaHei","PingFang SC",system-ui,sans-serif; }
-    button,input,textarea,select { font:inherit; }
-    button { cursor:pointer; }
-    button:disabled { cursor:not-allowed; opacity:.4; }
-    button,input,textarea,select { -webkit-tap-highlight-color:transparent; }
-    :focus-visible { outline:2px solid var(--jade); outline-offset:4px; }
-    button { color:inherit; }
-    input,textarea,select { color:var(--text); background:#13181c; border:1px solid var(--border); border-radius:8px; }
-    textarea { display:block; width:100%; resize:vertical; padding:11px 12px; line-height:1.75; }
-    select { width:100%; padding:10px 12px; }
-    input[type="range"] { width:100%; margin:10px 0 0; accent-color:var(--jade); cursor:pointer; min-height:23px; }
-    input[type="number"] { width:90px; padding:7px 10px; text-align:right; }
-    .shell { max-width:1600px; padding:0 36px 30px; margin:auto; }
-    .masthead { min-height:84px; display:flex; justify-content:space-between; align-items:center; gap:18px; border-bottom:1px solid var(--border); }
-    .brand { display:flex; align-items:center; gap:12px; }
-    .brand-mark { width:33px; height:38px; display:grid; place-items:center; color:var(--gold); font:29px/1 Georgia,serif; border:1px solid #78664a; border-radius:50% 50% 8px 8px; transform:rotate(-8deg); }
-    .brand-name { font-size:18px; font-weight:600; letter-spacing:3px; }
-    .brand-sub { color:var(--muted); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
-    .model-badge { display:flex; gap:8px; align-items:center; color:#b6c1bd; font-size:12px; }
-    .model-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--jade); box-shadow:0 0 12px #9dd9c344; }
-    .intro { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:27px 0 24px; }
-    .eyebrow { margin:0 0 7px; color:var(--gold); font-size:10px; letter-spacing:2px; }
-    h1 { font-family:"STSong","Songti SC","SimSun",serif; font-size:31px; line-height:1.4; font-weight:500; margin:0; letter-spacing:2px; }
-    .intro p { color:var(--muted); margin:9px 0 0; font-size:13px; }
-    .edition { color:#73817d; font:11px/1.7 ui-monospace,monospace; text-align:right; white-space:nowrap; }
-    .workspace { display:grid; grid-template-columns:290px minmax(0,1fr); align-items:start; gap:20px; }
-    .panel { background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); min-width:0; }
-    .setup { padding:21px; }
-    .section-heading { display:flex; align-items:center; gap:9px; margin:0; font-size:14px; font-weight:600; }
-    .section-index { color:var(--gold); font:11px ui-monospace,monospace; }
-    .section-note { color:var(--muted); font-size:11px; margin:5px 0 17px; }
-    .field-label { display:flex; justify-content:space-between; gap:8px; align-items:center; margin:17px 0 6px; font-size:12px; }
-    .field-label:first-child { margin-top:0; }
-    .control-output { font:12px ui-monospace,monospace; color:var(--jade); }
-    .brief { min-height:121px; font-size:12px; }
-    .range-limits { display:flex; justify-content:space-between; color:#84908f; font:10px ui-monospace,monospace; margin-top:-2px; }
-    .seed-field { display:flex; align-items:center; justify-content:space-between; margin:20px 0 17px; }
-    .seed-field label { font-size:12px; }
-    .seed-field small { display:block; color:var(--muted); font-size:10px; }
-    .primary { color:#16241f; background:var(--jade); border:1px solid var(--jade); border-radius:8px; padding:11px 16px; font-weight:600; }
-    .generate { width:100%; display:flex; justify-content:center; align-items:center; gap:10px; }
-    .generate span:last-child { font-size:18px; line-height:1; }
-    .preset-label { font-size:11px; color:var(--muted); margin:23px 0 9px; }
-    .presets { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-    .preset { border:1px solid var(--border); border-radius:7px; background:transparent; padding:8px 3px; font-size:11px; }
-    .preset:hover,.preset[aria-pressed="true"] { border-color:#719d8d; color:var(--jade); background:#9dd9c309; }
-    .method-note { margin:19px 0 0; padding-top:16px; border-top:1px solid var(--border); color:#8e9b99; font-size:10px; line-height:1.85; }
-    .main-column { display:grid; gap:16px; min-width:0; }
-    .stage-panel { overflow:hidden; }
-    .stage-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; }
-    .stage-meta { display:flex; gap:11px; align-items:center; font-size:10px; color:var(--muted); }
-    .live-dot { border:1px solid #536158; padding:2px 7px; border-radius:4px; color:var(--jade); font-size:10px; }
-    .stage-wrap { position:relative; background:#121c20; isolation:isolate; }
-    canvas { width:100%; height:auto; aspect-ratio:1.95; display:block; }
-    .stage-wrap.pending canvas { opacity:.48; }
-    .scene-title { position:absolute; top:22px; left:25px; pointer-events:none; }
-    .scene-title span { display:block; color:#b2c0b8; font-size:9px; letter-spacing:3px; }
-    .scene-title strong { display:block; font-family:"STSong","Songti SC","SimSun",serif; font-size:19px; font-weight:400; letter-spacing:5px; margin-top:5px; color:#e0e9df; }
-    .scene-tag { position:absolute; top:24px; right:24px; padding:4px 9px; border:1px solid #71878044; background:#15252377; color:#acbfb4; font-size:10px; letter-spacing:1px; }
-    .stage-footnote { position:absolute; bottom:14px; left:25px; right:25px; display:flex; justify-content:space-between; gap:12px; color:#90a39a; font:9px/1.5 ui-monospace,monospace; pointer-events:none; }
-    .stage-message { position:absolute; left:50%; top:46%; transform:translate(-50%,-50%); color:#d4e0d6; background:#14251cdd; border:1px solid #678574; border-radius:8px; padding:9px 14px; font-size:12px; max-width:85%; text-align:center; }
-    .stage-message[hidden] { display:none; }
-    .transport { padding:16px 20px 14px; }
-    .transport-row { display:flex; align-items:center; gap:8px; }
-    .transport button { min-height:35px; border-radius:7px; padding:6px 11px; font-size:11px; }
-    .play { border:1px solid var(--jade); background:var(--jade); color:#18261f; min-width:80px; font-weight:600; }
-    .secondary { border:1px solid var(--border); background:#222a2e; }
-    .secondary:hover { border-color:#708079; }
-    .time-label { margin-left:auto; color:var(--muted); font:11px ui-monospace,monospace; white-space:nowrap; }
-    .timeline-wrap { position:relative; padding-top:9px; }
-    .event-track { position:absolute; top:22px; left:1px; right:1px; height:4px; pointer-events:none; }
-    .event-track span { position:absolute; height:4px; border-radius:3px; background:var(--gold); opacity:.55; }
-    .timeline { position:relative; background:transparent; accent-color:var(--jade); }
-    .transport-caption { display:flex; justify-content:space-between; gap:10px; font-size:10px; color:var(--muted); }
-    .phase { color:var(--jade); }
-    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--border); border-top:1px solid var(--border); }
-    .metric { padding:13px 18px; background:var(--panel); min-width:0; }
-    .metric-label { color:var(--muted); font-size:10px; }
-    .metric-value { display:flex; align-items:baseline; gap:5px; margin-top:3px; font:23px/1.5 ui-monospace,monospace; color:#e6e8e0; }
-    .metric-value small { color:#82928b; font:9px/1.4 system-ui,sans-serif; }
-    .metric-value.jade { color:var(--jade); }
-    .lower-grid { display:grid; grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr); gap:16px; align-items:start; }
-    .causal-panel,.inspector { padding:19px 20px; }
-    .outcome { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:14px 0 5px; padding:10px 12px; border-radius:7px; border:1px solid #bda06c3b; background:#bda06c09; }
-    .outcome small { color:var(--muted); font-size:10px; }
-    .outcome strong { font-size:12px; font-weight:500; color:var(--gold); }
-    .outcome-detail { margin:7px 0 15px; color:#a9b4af; font-size:10px; line-height:1.9; }
-    .event-list { display:grid; gap:0; margin-top:14px; }
-    .event-row { position:relative; border:0; border-left:1px solid #465049; border-radius:0; background:transparent; text-align:left; padding:0 0 15px 17px; margin-left:4px; display:block; width:calc(100% - 4px); }
-    .event-row::before { content:""; position:absolute; width:7px; height:7px; left:-4px; top:7px; border-radius:50%; border:1px solid #87928b; background:var(--panel); }
-    .event-row:last-child { padding-bottom:0; border-color:transparent; }
-    .event-row.active::before { background:var(--jade); box-shadow:0 0 9px #9dd9c366; border-color:var(--jade); }
-    .event-row.complete::before { background:#5b7768; border-color:#5b7768; }
-    .event-row.active .event-label { color:var(--jade); }
-    .event-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
-    .event-label { font-size:11px; color:#cbd1c9; }
-    .event-time { font:9px ui-monospace,monospace; color:#9aa69d; white-space:nowrap; }
-    .event-reason { display:block; font-size:10px; line-height:1.7; color:#8c9b92; margin-top:3px; overflow-wrap:anywhere; }
-    details { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
-    summary { cursor:pointer; font-size:10px; color:var(--muted); }
-    .relations { font-size:10px; color:#acb7ae; line-height:1.9; padding-left:15px; overflow-wrap:anywhere; }
-    .tabs { display:flex; gap:18px; margin:14px 0; border-bottom:1px solid var(--border); }
-    .tab { padding:7px 0 9px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--muted); font-size:11px; }
-    .tab[aria-selected="true"] { border-color:var(--jade); color:var(--jade); }
     [hidden] { display:none !important; }
-    .element-id { color:#91ac9f; font:10px ui-monospace,monospace; margin:9px 0 5px; overflow-wrap:anywhere; }
-    .element-description { color:#c0c9c1; font-size:11px; margin:6px 0 13px; line-height:1.85; }
-    .data-label { display:block; font-size:10px; color:var(--muted); margin:13px 0 7px; }
-    .data-block { white-space:pre-wrap; overflow-wrap:anywhere; background:#13191c; border:1px solid #2e3839; border-radius:7px; padding:10px 11px; color:#a9c5b6; font:10px/1.7 ui-monospace,monospace; max-height:153px; overflow:auto; margin:0; }
-    .prompt-output { min-height:113px; font-size:10px; color:#c5cfc4; }
-    .source-note { color:#8c9e92; font-size:10px; line-height:1.8; margin:10px 0 0; overflow-wrap:anywhere; }
-    .negative { color:#8e9b93; font-size:10px; line-height:1.8; margin:0; overflow-wrap:anywhere; }
-    .export-row { display:flex; gap:8px; margin-top:14px; }
-    .export-row button { flex:1; min-height:35px; border-radius:7px; padding:7px; font-size:10px; }
-    .footer { display:flex; justify-content:space-between; gap:18px; padding-top:21px; color:#839089; font-size:10px; }
-    .status { margin:0; overflow-wrap:anywhere; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.65 "Microsoft YaHei","PingFang SC",system-ui,sans-serif; }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; color:inherit; background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:8px 12px; min-height:40px; }
+    button:hover { border-color:#88aa9e; }
+    button:disabled { opacity:.4; cursor:not-allowed; }
+    :focus-visible { outline:2px solid var(--jade); outline-offset:3px; }
+    input,textarea,select { min-width:0; max-width:100%; width:100%; color:var(--text); background:#111a1c; border:1px solid var(--line); border-radius:7px; padding:9px 10px; }
+    textarea { display:block; resize:vertical; line-height:1.8; }
+    select { text-overflow:ellipsis; }
+    input[type="checkbox"] { width:18px; height:18px; flex:none; accent-color:var(--jade); }
+    label { display:block; font-size:12px; color:#c2d2cc; margin-bottom:6px; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font:500 32px/1.4 "STSong","Songti SC",serif; letter-spacing:2px; }
+    h2 { font-size:16px; font-weight:600; }
+    h3 { font-size:13px; font-weight:600; }
+    .shell { max-width:1480px; margin:auto; padding:0 30px 32px; }
+    .masthead { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:78px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:11px; font-size:18px; letter-spacing:3px; }
+    .brand-mark { display:grid; place-items:center; width:32px; height:32px; flex:none; border:1px solid #7b987f; color:var(--jade); border-radius:8px; font-family:serif; }
+    .badge { color:var(--jade); border:1px solid #46685c; border-radius:30px; padding:4px 10px; font-size:11px; white-space:nowrap; }
+    .intro { padding:28px 0 26px; }
+    .eyebrow { font-size:10px; letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
+    .intro p { color:var(--muted); margin-top:9px; max-width:830px; }
+    .workspace { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; align-items:start; }
+    .editor-stack { display:grid; gap:18px; min-width:0; }
+    .panel { min-width:0; border:1px solid var(--line); border-radius:13px; background:var(--panel); padding:22px; }
+    .heading,.toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .heading { margin-bottom:8px; }
+    .step { color:var(--gold); font:12px ui-monospace,monospace; margin-right:9px; }
+    .muted,.hint { color:var(--muted); font-size:12px; }
+    .hint { margin-top:9px; overflow-wrap:anywhere; }
+    .brief { min-height:206px; margin-top:13px; }
+    .toolbar { justify-content:flex-start; margin-top:12px; gap:8px; }
+    .primary { background:var(--jade); border-color:var(--jade); color:#142e23; font-weight:600; }
+    .danger { color:var(--danger); }
+    .small { font-size:12px; padding:6px 10px; min-height:34px; }
+    .input-foot { display:flex; justify-content:space-between; gap:12px; margin-top:8px; color:var(--muted); font-size:11px; }
+    .notice { border:1px solid #776846; background:#e5c28c09; border-radius:8px; padding:10px 12px; margin-top:13px; color:var(--gold); font-size:12px; overflow-wrap:anywhere; }
+    .toggle { display:flex; align-items:center; gap:9px; font-size:13px; margin:17px 0 0; color:var(--text); }
+    .inventory-mode { margin:4px 0 15px 27px; color:var(--muted); font-size:11px; }
+    .inventory-layout { display:grid; grid-template-columns:minmax(155px,.8fr) minmax(0,1.4fr); gap:15px; }
+    .element-list { max-height:474px; min-height:160px; overflow-y:auto; padding:4px; border:1px solid var(--line); border-radius:9px; background:#121b1d; }
+    .element-row { display:block; width:100%; text-align:left; border:1px solid transparent; background:transparent; padding:9px 10px; margin-bottom:3px; border-radius:6px; overflow-wrap:anywhere; }
+    .element-row[aria-pressed="true"] { color:var(--jade); border-color:#587c6d; background:#a2e0c60a; }
+    .row-id { display:block; color:#8fa9a0; font:10px/1.5 ui-monospace,monospace; margin-top:2px; }
+    .list-footer { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:8px 0 0; }
+    .element-detail { min-width:0; }
+    .field-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+    .field { margin-bottom:12px; min-width:0; }
+    .wide { grid-column:1 / -1; }
+    .subheading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:5px 0 10px; }
+    .attribute-row { display:grid; grid-template-columns:minmax(0,.75fr) minmax(0,1fr) 32px; gap:6px; margin-bottom:7px; }
+    .attribute-row input { font-size:12px; padding:8px; }
+    .icon-button { padding:3px; min-height:36px; }
+    .empty { padding:25px 12px; text-align:center; color:var(--muted); font-size:12px; }
+    details { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+    summary { cursor:pointer; color:#c2d2cc; font-size:12px; overflow-wrap:anywhere; }
+    pre { white-space:pre-wrap; overflow-wrap:anywhere; font:11px/1.8 ui-monospace,monospace; background:#111a1c; border:1px solid var(--line); border-radius:7px; padding:11px; max-height:200px; overflow:auto; margin:10px 0 0; }
+    .item-prompt { font-size:12px; min-height:135px; }
+    .source { font-size:11px; color:var(--muted); margin-top:7px; overflow-wrap:anywhere; }
+    .interaction { border:1px solid var(--line); border-radius:8px; padding:11px 12px; margin-top:10px; }
+    .interaction summary { color:var(--text); }
+    .interaction-body { padding-top:14px; }
+    .interaction textarea { min-height:75px; font-size:12px; }
+    .interaction select[multiple] { min-height:88px; }
+    .interaction .field-grid { gap:0 12px; }
+    .result-panel { position:sticky; top:18px; }
+    .result-status { display:inline-block; font-size:11px; color:var(--muted); padding:3px 8px; border:1px solid var(--line); border-radius:5px; }
+    .result-status.caution { color:var(--gold); border-color:#776846; }
+    .result-note { margin:11px 0 15px; font-size:12px; color:var(--muted); }
+    .full-prompt { min-height:490px; font-size:13px; }
+    .negative { min-height:100px; margin-top:10px; font-size:12px; }
+    .result-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+    .review-list { padding-left:20px; margin:7px 0 0; color:var(--gold); font-size:12px; }
+    .review-list li { margin-bottom:8px; overflow-wrap:anywhere; white-space:pre-wrap; }
+    .review { max-height:290px; overflow-y:auto; }
+    .status { padding:15px 0 0; color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
     .status.error { color:var(--danger); }
-    .footer-note { margin:0; text-align:right; }
-    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-    @media (min-width:1450px) { .workspace { grid-template-columns:310px minmax(0,1fr); gap:24px; } .setup { padding:23px; } }
-    @media (max-width:1100px) { .shell { padding-inline:22px; } .workspace { grid-template-columns:260px minmax(0,1fr); gap:16px; } .setup { padding:18px; } .lower-grid { grid-template-columns:1fr; } .metric { padding:12px; } .metric-value { font-size:19px; } .scene-title strong { font-size:16px; } }
-    @media (max-width:760px) { .shell { padding:0 16px 22px; } .masthead { min-height:72px; } .brand-name { font-size:16px; } .brand-sub { font-size:8px; } .model-badge { font-size:9px; } .intro { padding:22px 0; } h1 { font-size:26px; } .intro p { font-size:11px; max-width:290px; } .edition { display:none; } .workspace { grid-template-columns:minmax(0,1fr); } .setup { order:1; } .main-column { display:contents; } .stage-panel { order:0; } .lower-grid { order:2; } .stage-heading { padding:13px 14px; } .stage-meta { gap:7px; font-size:9px; } .stage-meta>span:last-child { display:none; } canvas { aspect-ratio:1.38; } .scene-title { top:17px; left:17px; } .scene-title span { font-size:8px; } .scene-title strong { font-size:17px; } .scene-tag { right:16px; top:18px; font-size:8px; } .stage-footnote { left:17px; right:17px; font-size:8px; } .transport { padding:13px 14px; } .transport button { padding:6px 9px; font-size:10px; } .time-label { font-size:9px; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; } .metric { padding:11px 15px; } .metric-value { font-size:21px; } .metric-label { font-size:10px; } .lower-grid { gap:14px; } .causal-panel,.inspector { padding:17px; } .footer { display:block; } .footer-note { text-align:left; margin-top:8px; } .brief { min-height:95px; } .setup .section-note { margin-bottom:15px; } .preset { min-height:39px; } }
-    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
+    footer { color:#8ca29a; font-size:11px; padding-top:24px; }
+    @media (max-width:1120px) { .shell { padding-inline:20px; } .workspace { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:15px; } .panel { padding:17px; } .inventory-layout { grid-template-columns:minmax(0,1fr); } .element-list { max-height:220px; min-height:100px; } .full-prompt { min-height:440px; } }
+    @media (max-width:760px) { .shell { padding:0 14px 24px; } .masthead { min-height:68px; padding:12px 0; flex-wrap:wrap; gap:8px; } .brand { font-size:16px; letter-spacing:2px; } .badge { font-size:10px; } .intro { padding:23px 0; } h1 { font-size:27px; } .intro p { font-size:12px; } .workspace { grid-template-columns:minmax(0,1fr); } .panel { padding:16px; } .result-panel { position:static; } .brief { min-height:190px; } .full-prompt { min-height:360px; } .field-grid { grid-template-columns:minmax(0,1fr); gap:0; } .attribute-row { grid-template-columns:minmax(0,.8fr) minmax(0,1fr) 30px; } .heading { gap:8px; } }
   </style>
 </head>
 <body>
   <div class="shell">
-    <header class="masthead">
-      <div class="brand"><div class="brand-mark" aria-hidden="true">剑</div><div><div class="brand-name">一剑因果</div><div class="brand-sub">Causal Combat Atelier</div></div></div>
-      <div class="model-badge">规则驱动 · 可追溯推演</div>
-    </header>
-    <section class="intro" aria-labelledby="page-title">
-      <div><div class="eyebrow">玄幻战斗素材实验室 / 01</div><h1 id="page-title">让每一道剑光，有因可循。</h1><p>从创意描述到元素数据，再到可交互的战斗反馈。</p></div>
-      <div class="edition">TEXT → CAUSE → MOTION<br>PROCEDURAL 2D PREVIEW</div>
-    </section>
+    <header class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true">微</span>逐微 · 提示词工作台</div><span class="badge">VFX PROMPT / 文字创作</span></header>
+    <section class="intro" aria-labelledby="page-title"><p class="eyebrow">从一段设想，到每一处可见细节</p><h1 id="page-title">细节逐项写，交互有依据。</h1><p>自由定义画面中的具体元素、局部细节与相互影响，整理成可复制的特效提示词。元素数量、名称和属性均由你的描述决定。</p></section>
     <main class="workspace">
-      <form class="panel setup" id="combat-form">
-        <h2 class="section-heading"><span class="section-index">01</span>设定这一剑</h2>
-        <p class="section-note">改变参数，观察接触与能量如何传递。</p>
-        <label class="field-label" for="brief">创意描述 <span class="control-output">BRIEF</span></label>
-        <textarea id="brief" name="text" class="brief" maxlength="4000" required spellcheck="false">青衣剑修蓄积灵力，向玄金护盾斩出一道青色剑气；剑气与护盾相交后，根据剩余能量决定冲击、碎片与地面反馈。</textarea>
-        <label class="field-label" for="charge">蓄力强度 <output id="charge-output" class="control-output" for="charge">80%</output></label>
-        <input id="charge" name="charge" type="range" min="0" max="1" step="0.05" value="0.8">
-        <div class="range-limits"><span>0 · 无蓄力</span><span>1 · 全力</span></div>
-        <label class="field-label" for="distance_m">交战距离 <output id="distance-output" class="control-output" for="distance_m">8.0 m</output></label>
-        <input id="distance_m" name="distance_m" type="range" min="2" max="24" step="0.5" value="8">
-        <div class="range-limits"><span>2 m</span><span>24 m</span></div>
-        <label class="field-label" for="shield">护盾强度 <output id="shield-output" class="control-output" for="shield">50</output></label>
-        <input id="shield" name="shield" type="range" min="0" max="120" step="1" value="50">
-        <div class="range-limits"><span>0 · 无盾</span><span>120 · 坚固</span></div>
-        <label class="field-label" for="aim_offset_m">瞄准偏移 <output id="aim-output" class="control-output" for="aim_offset_m">0.0 m</output></label>
-        <input id="aim_offset_m" name="aim_offset_m" type="range" min="-5" max="5" step="0.1" value="0">
-        <div class="range-limits"><span>−5 m</span><span>+5 m</span></div>
-        <div class="seed-field"><label for="seed">随机种子<small>相同输入，可重复播放</small></label><input id="seed" name="seed" type="number" value="7" min="0" max="2147483647" step="1" required></div>
-        <button type="submit" class="primary generate" id="generate">生成战斗素材 <span aria-hidden="true">↗</span></button>
-        <p class="preset-label">用四种结果，检验同一条因果链</p>
-        <div class="presets" aria-label="战斗参数预设">
-          <button type="button" class="preset" data-preset="hit" aria-pressed="false">01 破盾命中</button>
-          <button type="button" class="preset" data-preset="blocked" aria-pressed="false">02 护盾格挡</button>
-          <button type="button" class="preset" data-preset="miss" aria-pressed="false">03 剑气偏离</button>
-          <button type="button" class="preset" data-preset="insufficient_energy" aria-pressed="false">04 灵力不足</button>
-        </div>
-        <p class="method-note">本实验使用显式规则与设计参数进行创作推演。数值属于素材设计单位，不是实测物理量，也不代表从观测数据学得的因果结论。</p>
-      </form>
-      <div class="main-column">
-        <section class="panel stage-panel" aria-labelledby="stage-title">
-          <div class="stage-heading"><h2 class="section-heading" id="stage-title"><span class="section-index">02</span>战斗预演</h2><div class="stage-meta"><span class="live-dot">Canvas 2D</span><span>数据驱动 / 30 Hz</span></div></div>
-          <div class="stage-wrap" id="stage-wrap">
-            <canvas id="battle" role="img" aria-label="青衣剑修与玄金守御者的程序化二维战斗预览。使用下方播放与时间轴控制。"></canvas>
-            <div class="scene-title"><span>境 · 云崖演武</span><strong>青霄一剑</strong></div>
-            <span class="scene-tag" id="scene-tag">等待推演</span>
-            <div class="stage-message" id="stage-message">正在载入元素与事件数据…</div>
-            <div class="stage-footnote"><span id="world-caption">世界坐标 · 米 / 能量 · 设计单位</span><span>实时程序预览 · 非生成视频</span></div>
-          </div>
-          <div class="transport">
-            <div class="transport-row">
-              <button type="button" class="play" id="play" disabled aria-label="播放战斗">▶ 播放</button>
-              <button type="button" class="secondary" id="replay" disabled>↻ 重播</button>
-              <button type="button" class="secondary" id="reset" disabled>回到开场</button>
-              <span class="time-label" id="time-label">0.00 / 0.00 s</span>
-            </div>
-            <label for="timeline" class="sr-only">战斗播放时间，单位秒</label>
-            <div class="timeline-wrap"><div class="event-track" id="event-track" aria-hidden="true"></div><input class="timeline" id="timeline" type="range" min="0" max="1" value="0" step="any" disabled></div>
-            <div class="transport-caption"><span class="phase" id="phase-label">等待生成</span><span id="motion-note">点击播放，或拖动时间轴逐帧查看</span></div>
-          </div>
-          <div class="metrics" aria-label="当前帧状态">
-            <div class="metric"><div class="metric-label">当前攻击者灵力</div><div class="metric-value"><span id="energy-value">—</span><small>设计单位</small></div></div>
-            <div class="metric"><div class="metric-label">当前护盾强度</div><div class="metric-value"><span id="shield-value">—</span><small>设计单位</small></div></div>
-            <div class="metric"><div class="metric-label">当前目标生命</div><div class="metric-value jade"><span id="hp-value">—</span><small>HP</small></div></div>
-            <div class="metric"><div class="metric-label">地面状态</div><div class="metric-value" style="font-family:inherit;font-size:16px;padding-top:5px"><span id="ground-value">—</span></div></div>
-          </div>
+      <div class="editor-stack">
+        <section class="panel" aria-labelledby="input-title">
+          <div class="heading"><h2 id="input-title"><span class="step">01</span>写下创意原文</h2><button id="clear" type="button" class="small">清空内容</button></div>
+          <p class="muted">可以输入自由叙述，也可以每行写一个具体细节。原文会完整保留。</p>
+          <label for="brief" class="hint">创意描述</label><textarea id="brief" class="brief" spellcheck="false" placeholder="描述你真正想表现的细节，以及它们在什么条件下相互影响…"></textarea>
+          <div class="input-foot"><span id="input-origin">空白创作</span><span id="char-count">0 字符</span></div>
+          <div class="toolbar"><button id="load-example" type="button">载入详细示例</button><button id="read-text" type="button">从分项文字读取</button></div>
+          <p class="hint">分项格式：每行「名称｜属性=值｜属性=值」或「名称：完整细节」。读取会替换下方逐项数据；自由叙述无法确认的部分会明确标出。</p>
+          <p id="reconcile" class="notice" hidden></p>
         </section>
-        <div class="lower-grid">
-          <section class="panel causal-panel" aria-labelledby="causal-title">
-            <h2 class="section-heading" id="causal-title"><span class="section-index">03</span>这一剑，为何如此</h2>
-            <div class="outcome"><small>全片推演结果</small><strong id="outcome-label">等待生成</strong></div>
-            <p class="outcome-detail" id="outcome-detail">接触、吸收与余能会由同一份事件数据驱动。</p>
-            <div class="event-list" id="event-list" aria-label="因果事件时间线"></div>
-            <details><summary>查看因果关系与交互规则</summary><ul class="relations" id="relation-list"></ul><ul class="relations" id="rule-list"></ul></details>
-            <details><summary>查看设计假设</summary><ul class="relations" id="assumption-list"></ul></details>
-          </section>
-          <section class="panel inspector" aria-labelledby="inspector-title">
-            <h2 class="section-heading" id="inspector-title"><span class="section-index">04</span>素材档案</h2>
-            <div class="tabs" role="tablist" aria-label="素材查看方式">
-              <button type="button" class="tab" id="element-tab" role="tab" aria-selected="true" aria-controls="element-panel" tabindex="0">元素与材质</button>
-              <button type="button" class="tab" id="clip-tab" role="tab" aria-selected="false" aria-controls="clip-panel" tabindex="-1">整段分镜</button>
+        <section class="panel" aria-labelledby="inventory-title">
+          <div class="heading"><h2 id="inventory-title"><span class="step">02</span>细分元素与局部细节</h2><span id="element-count" class="muted">0 项</span></div>
+          <p class="muted">例如刃口缺口、边缘反光、焰心、外焰、尾迹、局部反射或遮挡，都可以各自成项；这些只是可选例子。</p>
+          <label class="toggle" for="use-inventory"><input id="use-inventory" type="checkbox">使用逐项数据</label>
+          <p id="inventory-mode" class="inventory-mode">关闭时仅根据原文生成，下方数据不会提交。</p>
+          <div class="inventory-layout">
+            <div><div id="element-list" class="element-list" role="group" aria-label="具体元素列表"></div><div class="list-footer"><span class="muted">数量不限于某个模板</span><button id="add-element" type="button" class="small">＋ 添加</button></div></div>
+            <div class="element-detail">
+              <p id="element-empty" class="empty">选择一项编辑，或添加自己的具体细节。</p>
+              <div id="element-editor" hidden>
+                <div class="field-grid"><div class="field"><label for="element-id">元素 ID</label><input id="element-id" spellcheck="false"></div><div class="field"><label for="element-name">名称</label><input id="element-name"></div></div>
+                <div class="field"><label for="element-parent">所属元素（可选）</label><select id="element-parent"></select></div>
+                <div class="subheading"><h3>自定义属性</h3><button id="add-attribute" type="button" class="small">＋ 属性</button></div>
+                <p class="muted" style="margin-bottom:9px">左侧为属性名，右侧为具体描述；按需要自由增减。</p>
+                <div id="attributes"></div>
+                <div class="toolbar"><button id="delete-element" type="button" class="small danger">删除此项</button></div>
+                <details><summary>本项原始属性</summary><pre id="element-data">{}</pre></details>
+                <details open><summary>本项生成的提示词</summary><label for="element-prompt" class="hint">选中项的独立描述</label><textarea id="element-prompt" class="item-prompt" readonly placeholder="生成后显示此项提示词"></textarea><p id="element-source" class="source"></p><button id="copy-element" type="button" class="small" style="margin-top:9px" disabled>复制本项提示词</button></details>
+              </div>
             </div>
-            <div id="element-panel" role="tabpanel" aria-labelledby="element-tab">
-              <label for="element-select" class="sr-only">选择要查看的战斗元素</label><select id="element-select" disabled><option>等待元素数据</option></select>
-              <p class="element-id" id="element-id">ELEMENT / —</p>
-              <p class="element-description" id="element-description">每个角色、护盾与特效，都有独立的标识、数据与素材描述。</p>
-              <span class="data-label">元素数据 · 世界坐标使用米</span><pre class="data-block" id="element-data">{ }</pre>
-              <label class="data-label" for="element-prompt">材质 / 特效提示词</label><textarea class="prompt-output" id="element-prompt" readonly spellcheck="false" placeholder="生成后显示材质描述"></textarea>
-              <p class="source-note" id="element-source"></p>
-              <details><summary>排除项 / Negative prompt</summary><p class="negative" id="element-negative"></p></details>
-            </div>
-            <div id="clip-panel" role="tabpanel" aria-labelledby="clip-tab" hidden>
-              <p class="element-description" id="clip-description">生成后可查看完整的动作、接触条件与反馈描述。</p>
-              <label class="data-label" for="clip-prompt">完整分镜提示词</label><textarea class="prompt-output" id="clip-prompt" readonly rows="10" spellcheck="false" placeholder="生成后显示完整分镜"></textarea>
-              <details><summary>整段排除项 / Negative prompt</summary><p class="negative" id="clip-negative"></p></details>
-              <p class="source-note">输出为文本素材与结构化场景数据，可用于后续资产制作；此处未连接图像、视频或三维引擎生成服务。</p>
-            </div>
-            <div class="export-row"><button type="button" class="secondary" id="copy-prompt" disabled>复制提示词</button><button type="button" class="secondary" id="download" disabled>↓ 导出 JSON</button></div>
-          </section>
-        </div>
+          </div>
+          <details><summary>交互定义 <span id="interaction-count">0 条</span> · 条件与可见响应</summary><p class="hint">连接具体元素，写明触发条件与能观察到的变化；可补充前、中、后阶段和依赖关系。</p><div id="interaction-list"></div><div class="toolbar"><button id="add-interaction" type="button" class="small">＋ 添加交互</button></div></details>
+        </section>
       </div>
+      <section class="panel result-panel" aria-labelledby="output-title">
+        <div class="heading"><h2 id="output-title"><span class="step">03</span>生成特效提示词</h2><span id="result-state" class="result-status">待生成</span></div>
+        <p id="result-note" class="result-note">确认原文和逐项数据后生成。未确认的细分内容会单独列出，供你继续补充。</p>
+        <button id="generate" type="button" class="primary" style="width:100%">生成详细提示词</button>
+        <div id="review" class="notice review" hidden><h3 id="review-title">待确认内容</h3><ul id="review-list" class="review-list"></ul></div>
+        <label for="full-prompt" class="hint" style="margin:18px 0 7px">完整特效提示词</label><textarea id="full-prompt" class="full-prompt" readonly spellcheck="false" placeholder="生成结果会出现在这里。自由原文中的未知细节会保留为待确认内容。"></textarea>
+        <details><summary>排除项 / Negative prompt</summary><label for="negative-prompt" class="hint">生成结果中的排除描述</label><textarea id="negative-prompt" class="negative" readonly></textarea></details>
+        <div class="result-actions"><button id="copy-prompt" type="button" disabled>复制完整提示词</button><button id="download" type="button" disabled>导出 JSON</button></div>
+        <p id="status" class="status" role="status" aria-live="polite">正在载入详细示例…</p>
+      </section>
     </main>
-    <footer class="footer"><p id="status" class="status" role="status" aria-live="polite">连接本地素材服务…</p><p class="footer-note">同一份数据，贯穿描述 · 因果 · 动画。<br>规则设计模拟 / 非学习型因果推断</p></footer>
+    <footer>逐项数据负责说明具体细节，原文负责保留创作意图。输出为提示词与可追溯的结构化文字。</footer>
   </div>
   <script>
     "use strict";
+    // 控件均来自本页；动态内容只能写入文本节点或原生输入值。
+    const ui = Object.fromEntries(["brief","clear","load-example","read-text","input-origin","char-count","reconcile","use-inventory","inventory-mode","element-count","element-list","element-empty","element-editor","element-id","element-name","element-parent","attributes","element-data","element-prompt","element-source","add-element","add-attribute","delete-element","copy-element","interaction-count","interaction-list","add-interaction","generate","result-state","result-note","review","review-title","review-list","full-prompt","negative-prompt","copy-prompt","download","status"].map(id => [id,document.getElementById(id)]));
+    let elements = []; // 当前可编辑的具体元素，属性保留服务端原始标量类型。
+    let interactions = []; // 当前可编辑的交互定义，引用使用稳定 ID。
+    let selectedId = ""; // 侧栏当前选中的元素 ID。
+    let report = null; // 仅保存与当前输入完全一致的生成报告。
+    let revision = 0; // 每次编辑递增，使旧请求与旧输出立即失效。
+    let controller = null; // 当前同源请求的中止器，输入变更时取消请求。
+    let busy = false; // 只约束请求按钮，编辑输入始终可用。
 
-    // 固定的控件引用仅属于本页面，所有动态文案通过 textContent 或 value 写入。
-    const ui = {
-      form: document.getElementById("combat-form"), // 创意与数值参数的提交入口。
-      text: document.getElementById("brief"), // 用户创意文本，不作为 HTML 解释。
-      charge: document.getElementById("charge"), // 无量纲蓄力，范围 0–1。
-      distance_m: document.getElementById("distance_m"), // 交战距离，单位米。
-      shield: document.getElementById("shield"), // 初始护盾设计强度，范围 0–120。
-      aim_offset_m: document.getElementById("aim_offset_m"), // 横向瞄准偏移，单位米。
-      seed: document.getElementById("seed"), // 可重复推演的整数种子。
-      canvas: document.getElementById("battle"), // 唯一的二维特效画布。
-      wrap: document.getElementById("stage-wrap"), // 请求期间标记场景为待更新。
-      message: document.getElementById("stage-message"), // 画布上方的载入或错误提示。
-      play: document.getElementById("play"), // 播放与暂停的同一入口。
-      replay: document.getElementById("replay"), // 从头完整重播。
-      reset: document.getElementById("reset"), // 暂停并返回开场帧。
-      timeline: document.getElementById("timeline"), // 秒为单位的精确拖动条。
-      status: document.getElementById("status"), // 低频无障碍状态通知。
-      elementSelect: document.getElementById("element-select"), // 后端元素注册表的选择器。
-      elementPrompt: document.getElementById("element-prompt"), // 可选择、复制的元素提示词。
-      clipPrompt: document.getElementById("clip-prompt"), // 可选择、复制的完整提示词。
-      copy: document.getElementById("copy-prompt"), // 复制当前素材面板的提示词。
-      download: document.getElementById("download"), // 下载原始后端生成结果。
-      elementTab: document.getElementById("element-tab"), // 元素素材标签页。
-      clipTab: document.getElementById("clip-tab"), // 完整分镜标签页。
-      elementPanel: document.getElementById("element-panel"), // 元素详情容器。
-      clipPanel: document.getElementById("clip-panel") // 完整分镜容器。
-    };
-    // 每个预设只改变输入；命中、伤害与事件仍完全由服务端求得。
-    const presets = {
-      hit: { charge: .95, distance_m: 6, shield: 24, aim_offset_m: 0 }, // 高蓄力、近距离与较弱护盾。
-      blocked: { charge: .55, distance_m: 8, shield: 120, aim_offset_m: 0 }, // 充足护盾吸收全部接触能量。
-      miss: { charge: .8, distance_m: 8, shield: 50, aim_offset_m: 4 }, // 大偏移用于演示未接触。
-      insufficient_energy: { charge: 0, distance_m: 8, shield: 50, aim_offset_m: 0 } // 零蓄力用于演示发射前置条件。
-    };
-    // 仅用于显示的阶段翻译，不参与任何战斗判定。
-    const phaseLabels = { idle:"起势", ready:"起势", charge:"凝聚灵力", charging:"凝聚灵力", release:"剑气出鞘", launch:"剑气出鞘", flight:"剑气飞行", travel:"剑气飞行", impact:"接触反馈", collision:"接触反馈", shield_absorb:"护盾吸收", shield_break:"护盾碎裂", recoil:"受击反冲", shockwave:"余能扩散", debris:"石屑飞散", dissipate:"剑光消散", aftermath:"余波消散", settle:"余波消散", complete:"推演结束", end:"推演结束", insufficient_energy:"灵力不足", blocked:"护盾格挡", miss:"剑气偏离", hit:"命中反馈" };
-    // 只保存当前生成响应与播放状态；不在客户端重新求解战斗结果。
-    let combat = null;
-    // 以元素标识索引注册表，供绘图与素材检查使用。
-    let elementMap = new Map();
-    // 事件按钮保留引用，逐帧更新样式时避免反复重建 DOM。
-    let eventRows = [];
-    // 当前播放时间，单位秒；所有可见动态都由该时间对应的数据驱动。
-    let currentTime = 0;
-    // 播放开关仅由用户播放、暂停、跳转与新请求更改。
-    let playing = false;
-    // 单一 requestAnimationFrame 句柄，防止重复播放循环。
-    let animationId = 0;
-    // 上一次动画时钟，用于计算真实播放间隔。
-    let lastClock = 0;
-    // 每次输入变更立即递增版本，旧响应不得覆盖新输入。
-    let requestVersion = 0;
-    // 当前网络请求的中止器，新输入到来即取消。
-    let requestController = null;
-    // 输入防抖计时器，仅延迟请求，不延迟失效旧数据。
-    let generateTimer = 0;
-    // 待更新标记阻止播放上一组参数的战斗。
-    let pending = true;
-    // 当前素材标签，用于决定复制对象。
-    let selectedTab = "element";
-    // 画布逻辑像素大小由容器决定，独立于设备像素密度。
-    let canvasWidth = 960;
-    // 画布逻辑高度在移动端随 CSS 比例增加。
-    let canvasHeight = 492;
-    // 二维绘制上下文仅负责程序化预览，不请求任何素材网络资源。
-    const ctx = ui.canvas.getContext("2d");
-    // 系统减少动态效果偏好会抑制震屏和高频粒子闪烁。
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    // 设置低频状态通知；错误作为可见文本保留，不抛出到页面。
-    function setStatus(message, isError = false) {
-      ui.status.textContent = message;
-      ui.status.classList.toggle("error", isError);
+    // 同时更新可见状态与无障碍低频通知。
+    function setStatus(message, error = false) { ui.status.textContent = message; ui.status.classList.toggle("error",error); }
+    // 创建安全文本节点，所有用户内容均不经过 HTML 解释。
+    function node(tag, text = "", className = "") { const item = document.createElement(tag); /* 当前创建的独立节点。 */ item.textContent = text; item.className = className; return item; }
+    // 添加原生选项，长名称仍以稳定标识区分。
+    function option(select, value, text) { const item = node("option",text); /* 安全显示的选择项。 */ item.value = value; select.append(item); }
+    // 只改变有效结果相关的操作状态，不锁住用户编辑。
+    function updateActions() {
+      for (const id of ["generate","read-text","load-example"]) ui[id].disabled = busy; // 避免同一时刻重复提交。
+      ui["copy-prompt"].disabled = !report;
+      ui.download.disabled = !report;
+      ui["copy-element"].disabled = !report || !ui["element-prompt"].value;
+      ui.generate.textContent = busy ? "正在整理文字…" : "生成详细提示词";
     }
-
-    // 安全设置指定节点的文本，禁止将生成文本或用户文本作为 HTML 注入。
-    function setText(id, value) {
-      document.getElementById(id).textContent = String(value ?? "—");
+    // 原文或数据变化后清空旧报告，防止复制和下载过期内容。
+    function invalidate(message = "内容已修改，请重新生成提示词。") {
+      revision += 1; controller?.abort(); controller = null; busy = false; report = null;
+      ui["full-prompt"].value = ""; ui["negative-prompt"].value = ""; ui["element-prompt"].value = ""; ui["element-source"].textContent = "";
+      ui.review.hidden = true; ui["result-state"].textContent = "待生成"; ui["result-state"].classList.remove("caution");
+      ui["result-note"].textContent = "当前内容尚未生成。确认输入后，点击生成详细提示词。";
+      updateActions(); setStatus(message);
     }
-
-    // 格式化有限数值；缺失数据明确显示为横线而非伪造零值。
-    function numberText(value, digits = 1) {
-      return typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits).replace(/\.0$/, "") : "—";
+    // 展示当前提交方式；保留的清单不会在原文改写后被暗中提交。
+    function renderMode() {
+      ui["inventory-mode"].textContent = ui["use-inventory"].checked ? "已启用：生成时提交下方元素和交互，请确认它们与原文一致。" : "已关闭：仅根据原文生成。保留的逐项数据不会提交；可核对后重新启用。";
+      ui["element-count"].textContent = `${elements.length} 项`;
+      ui["interaction-count"].textContent = `${interactions.length} 条`;
+      ui["char-count"].textContent = `${ui.brief.value.length} 字符`;
     }
-
-    // 同步输入旁的单位与数值，不计算任何战斗反馈。
-    function updateInputLabels() {
-      setText("charge-output", `${Math.round(Number(ui.charge.value) * 100)}%`);
-      setText("distance-output", `${Number(ui.distance_m.value).toFixed(1)} m`);
-      setText("shield-output", ui.shield.value);
-      setText("aim-output", `${Number(ui.aim_offset_m.value).toFixed(1)} m`);
+    // 为新元素或交互分配局部唯一 ID，不依赖元素类型或固定数量。
+    function nextId(prefix, reserved = new Set([...elements,...interactions].map(item => item.id))) {
+      let index = 1; // 从首个未占用序号开始寻找，删除后也不会覆盖现有项。
+      while (reserved.has(`${prefix}${String(index).padStart(3,"0")}`)) index += 1;
+      return `${prefix}${String(index).padStart(3,"0")}`;
     }
-
-    // 收集浏览器验证后的输入；所有计算与文本编排均交给同源后端。
-    function readParameters() {
-      return {
-        text: ui.text.value, // 创意原文。
-        charge: Number(ui.charge.value), // 蓄力比例。
-        distance_m: Number(ui.distance_m.value), // 米。
-        shield: Number(ui.shield.value), // 护盾设计单位。
-        aim_offset_m: Number(ui.aim_offset_m.value), // 米。
-        seed: Number(ui.seed.value) // 整数种子。
-      };
+    // 将 API 中可编辑字段复制到本地，不把生成文本混入输入清单。
+    function loadInventory(data) {
+      const reserved = new Set([...(data.elements ?? []),...(data.interactions ?? [])].map(item => item.id).filter(Boolean)); // 提前保留所有显式 ID。
+      elements = (data.elements ?? []).map(item => {
+        const id = item.id || nextId("e",reserved); // 缺省 ID 仅在读取时补一次。
+        reserved.add(id); return {id,name:item.name ?? "",parent_id:item.parent_id ?? null,attributes:{...(item.attributes ?? {})}};
+      });
+      interactions = (data.interactions ?? []).map(item => {
+        const id = item.id || nextId("i",reserved); // 交互与元素共享本地唯一序号空间。
+        reserved.add(id); return {id,source_id:item.source_id ?? "",target_id:item.target_id ?? "",trigger:item.trigger ?? "",response:item.response ?? "",before:item.before ?? "",during:item.during ?? "",after:item.after ?? "",depends_on:[...(item.depends_on ?? [])]};
+      });
+      selectedId = elements[0]?.id ?? ""; renderInventory();
     }
-
-    // 统一管理需要有效响应的控件，允许生成期间继续调整下一组参数。
-    function updateEnabledControls() {
-      // 当前响应存在且与输入一致时才允许播放和导出。
-      const enabled = Boolean(combat) && !pending;
-      for (const control of [ui.play, ui.replay, ui.reset, ui.timeline, ui.elementSelect, ui.copy, ui.download]) { // 同一组受数据可用性约束的控件。
-        control.disabled = !enabled;
+    // 根据父级引用向上查找，排除自身与子孙作为父级以避免新建环。
+    function isDescendant(candidateId, ancestorId) {
+      const lookup = new Map(elements.map(item => [item.id,item])); // 当前元素的父级查询表。
+      const visited = new Set(); // 防止已有异常数据使界面陷入无限循环。
+      while (candidateId && !visited.has(candidateId)) { if (candidateId === ancestorId) return true; visited.add(candidateId); candidateId = lookup.get(candidateId)?.parent_id; }
+      return false;
+    }
+    // 重绘可滚动清单时保留滚动位置，不移动键盘焦点。
+    function renderList() {
+      const scroll = ui["element-list"].scrollTop; // 保留用户在大量细节中的浏览位置。
+      ui["element-list"].replaceChildren();
+      for (const item of elements) { // 不对元素名称或数量作任何分类假设。
+        const button = node("button","","element-row"); // 每项均可由键盘选择。
+        button.type = "button"; button.setAttribute("aria-pressed",String(item.id === selectedId));
+        button.append(node("span",item.name || "未命名元素"),node("span",`${item.id}${item.parent_id ? ` · 属于 ${item.parent_id}` : ""}`,"row-id"));
+        button.addEventListener("click",() => { selectedId = item.id; renderList(); renderElement(); }); ui["element-list"].append(button);
       }
-      ui.wrap.classList.toggle("pending", pending);
+      if (!elements.length) ui["element-list"].append(node("p","尚无逐项数据，可自行添加。","empty"));
+      ui["element-list"].scrollTop = scroll; renderMode();
     }
-
-    // 暂停后保留时间；取消已有动画句柄，保证只有一条播放链。
-    function pausePlayback() {
-      playing = false;
-      cancelAnimationFrame(animationId);
-      animationId = 0;
-      ui.play.textContent = "▶ 播放";
-      ui.play.setAttribute("aria-label", "播放战斗");
+    // 切换元素后同时展示可编辑属性、原始标量和有效报告中的本项提示词。
+    function renderElement() {
+      const item = elements.find(entry => entry.id === selectedId); // 当前编辑对象，不复制可变引用。
+      ui["element-editor"].hidden = !item; ui["element-empty"].hidden = Boolean(item);
+      if (!item) { ui["element-prompt"].value = ""; updateActions(); return; }
+      ui["element-id"].value = item.id; ui["element-id"].setCustomValidity(""); ui["element-name"].value = item.name;
+      ui["element-parent"].replaceChildren(); option(ui["element-parent"],"","无 · 独立元素");
+      for (const parent of elements) if (!isDescendant(parent.id,item.id)) option(ui["element-parent"],parent.id,`${parent.name} · ${parent.id}`); // 排除潜在循环。
+      if (item.parent_id && ![...ui["element-parent"].options].some(entry => entry.value === item.parent_id)) option(ui["element-parent"],item.parent_id,`需修正的父级 · ${item.parent_id}`);
+      ui["element-parent"].value = item.parent_id ?? "";
+      renderAttributes(item); renderElementPrompt();
     }
-
-    // 输入变更立即让旧请求和旧播放失效，再以短防抖减少连续滑动请求。
-    function scheduleGenerate(delay = 220) {
-      requestVersion += 1;
-      requestController?.abort();
-      clearTimeout(generateTimer);
-      pausePlayback();
-      currentTime = 0;
-      pending = true;
-      updateInputLabels();
-      updateEnabledControls();
-      ui.message.hidden = false;
-      ui.message.textContent = "参数已更新，正在重新推演…";
-      setStatus("参数已更新；新素材就绪后可手动播放。");
-      renderCurrent();
-      // 捕获本次版本；后续输入会取消计时器并使该版本失效。
-      const version = requestVersion;
-      generateTimer = window.setTimeout(() => generateCombat(version), delay);
-    }
-
-    // 请求固定契约的数据；版本与中止双重检查避免乱序响应覆盖新素材。
-    async function generateCombat(version) {
-      if (version !== requestVersion) return;
-      if (!ui.form.reportValidity()) {
-        ui.message.textContent = "请填写创意描述与有效的整数种子后重新生成。";
-        setStatus("请填写 1–4000 字的创意描述，种子须为 0 至 2147483647 的整数。", true);
-        return;
+    // 每行任意键值均可独立编辑；仅在值被编辑后把原始标量转换为字符串。
+    function renderAttributes(item) {
+      ui.attributes.replaceChildren();
+      for (const [key,value] of Object.entries(item.attributes)) { // 原始键名也允许包含标点和非拉丁字符。
+        let currentKey = key; // 改名后原地更新事件引用，避免重建输入行打断下一次点击。
+        const row = node("div","","attribute-row"); // 当前属性的三列编辑行。
+        const nameInput = document.createElement("input"); // 属性名在提交变更时检查重复。
+        const valueInput = document.createElement("input"); // 未改动的数值、布尔和 null 保留原类型。
+        const remove = node("button","×","icon-button danger"); // 单独删除本属性。
+        nameInput.value = key; nameInput.setAttribute("aria-label",`${item.name}的属性名：${key}`);
+        valueInput.value = value === null ? "null" : String(value); valueInput.setAttribute("aria-label",`${item.name}的${key}属性值`);
+        nameInput.addEventListener("input",() => { nameInput.setCustomValidity(""); invalidate(); });
+        nameInput.addEventListener("change",() => {
+          const newKey = nameInput.value; // 原样保留用户属性名，只拒绝空白与重名。
+          if (!newKey.trim() || (newKey !== currentKey && Object.hasOwn(item.attributes,newKey))) { nameInput.value = currentKey; setStatus("属性名不能为空或与当前项的其他属性重名，已保留原属性名。",true); return; }
+          item.attributes = Object.fromEntries(Object.entries(item.attributes).map(([existing,content]) => [existing === currentKey ? newKey : existing,content]));
+          currentKey = newKey; nameInput.setAttribute("aria-label",`${item.name}的属性名：${newKey}`); valueInput.setAttribute("aria-label",`${item.name}的${newKey}属性值`); remove.setAttribute("aria-label",`删除属性：${newKey}`);
+          invalidate(); renderRaw(item);
+        });
+        valueInput.addEventListener("input",() => { item.attributes = {...item.attributes,[currentKey]:valueInput.value}; invalidate(); renderRaw(item); });
+        remove.type = "button"; remove.setAttribute("aria-label",`删除属性：${key}`);
+        remove.addEventListener("click",() => { delete item.attributes[currentKey]; invalidate(); renderAttributes(item); });
+        row.append(nameInput,valueInput,remove); ui.attributes.append(row);
       }
-      // 当前请求独占中止器，在 finally 中只处理自己的版本。
-      const controller = new AbortController();
-      requestController = controller;
+      if (!Object.keys(item.attributes).length) ui.attributes.append(node("p","尚未填写属性，可添加任何具体描述。","hint"));
+      renderRaw(item);
+    }
+    // 原始数据仅由 JSON 文本展示，不把属性键当作对象原型赋值。
+    function renderRaw(item) { ui["element-data"].textContent = JSON.stringify(item.attributes,null,2); }
+    // 选中项的生成文本只取当前有效报告中的相同稳定 ID。
+    function renderElementPrompt() {
+      const item = report?.elements.find(entry => entry.id === selectedId); // 生成报告中的同一细节。
+      const basis = report?.extraction_status === "explicit_inventory" ? "用户逐项数据" : "分项原文"; // 来源在界面中使用中文表达。
+      ui["element-prompt"].value = item?.prompt ?? "";
+      ui["element-source"].textContent = item ? `来源依据：${basis}${item.source?.quote ? ` · ${item.source.quote}` : ""}` : "";
+      updateActions();
+    }
+    // 为交互动态建立带中文标签的字段，编辑值立即让旧输出失效。
+    function interactionField(container, labelText, tag, value, onChange, wide = false) {
+      const field = node("div","",`field${wide ? " wide" : ""}`); // 当前字段的布局容器。
+      const label = node("label",labelText); // 可见中文标签与输入控件关联。
+      const input = document.createElement(tag); // 原生控件负责键盘与读屏操作。
+      input.value = value; input.setAttribute("aria-label",labelText); label.append(input); field.append(label); container.append(field);
+      input.addEventListener(tag === "select" ? "change" : "input",() => { onChange(input.value); invalidate(); }); return input;
+    }
+    // 交互来源与目标只能从已有 ID 中选取，缺失引用明确保留以供修正。
+    function fillElementOptions(select, value) {
+      option(select,"","请选择具体元素");
+      for (const item of elements) option(select,item.id,`${item.name || "未命名"} · ${item.id}`); // 显示自由名称。
+      if (value && !elements.some(item => item.id === value)) option(select,value,`缺失元素 · ${value}`);
+      select.value = value;
+    }
+    // 交互以折叠表单呈现，可独立定义阶段和事件依赖。
+    function renderInteractions(openId = "") {
+      ui["interaction-list"].replaceChildren();
+      for (const item of interactions) { // 没有交互时不会自动补造事件。
+        const detail = node("details","","interaction"); // 每条交互的原生折叠容器。
+        const summary = node("summary"); // 显示当前 ID 和双方名称。
+        const grid = node("div","","field-grid interaction-body"); // 两列短字段，在手机上自动折为单列。
+        const nameOf = id => elements.find(entry => entry.id === id)?.name || id || "待选择"; // 缺失 ID 仍可辨认。
+        const refreshTitle = () => { summary.textContent = `${item.id} · ${nameOf(item.source_id)} → ${nameOf(item.target_id)}`; }; // 输入变更时保持摘要同步。
+        detail.open = item.id === openId; refreshTitle(); detail.append(summary,grid);
+        const idInput = interactionField(grid,"交互 ID","input",item.id,() => {}); // ID 仅在完整编辑提交后更新引用。
+        idInput.addEventListener("change",() => {
+          const newId = idInput.value.trim(); // 首尾空白不构成不同的引用。
+          if (!newId || interactions.some(entry => entry !== item && entry.id === newId)) { idInput.value = item.id; setStatus("交互 ID 不能为空或重名，已保留原 ID。",true); return; }
+          const oldId = item.id; // 依赖列表需要原 ID 才能同步更新。
+          item.id = newId; for (const entry of interactions) entry.depends_on = entry.depends_on.map(id => id === oldId ? newId : id);
+          invalidate(); renderInteractions(newId);
+        });
+        const source = interactionField(grid,"来源元素","select","",value => { item.source_id = value; refreshTitle(); }); // 选择现有细节。
+        const target = interactionField(grid,"目标元素","select","",value => { item.target_id = value; refreshTitle(); }); // 选择响应所在细节。
+        fillElementOptions(source,item.source_id); fillElementOptions(target,item.target_id);
+        interactionField(grid,"触发条件","textarea",item.trigger,value => { item.trigger = value; },true);
+        interactionField(grid,"可观察的响应","textarea",item.response,value => { item.response = value; },true);
+        const phases = node("details","","wide"); // 阶段信息按需展开，避免迫使用户填写全部字段。
+        const phaseGrid = node("div","","interaction-body"); // 可选阶段和依赖的共同容器。
+        phases.append(node("summary","可选：前 / 中 / 后阶段与依赖"),phaseGrid); grid.append(phases);
+        for (const [key,label] of [["before","发生前"],["during","发生中"],["after","发生后"]]) interactionField(phaseGrid,label,"textarea",item[key],value => { item[key] = value; }); // 保留非强制阶段。
+        const dependencies = interactionField(phaseGrid,"依赖交互（可多选）","select","",() => {}); // 事件顺序由显式依赖描述。
+        dependencies.multiple = true;
+        for (const entry of interactions) if (entry !== item) option(dependencies,entry.id,entry.id); // 不能直接依赖自身。
+        for (const id of item.depends_on) if (![...dependencies.options].some(entry => entry.value === id)) option(dependencies,id,`需修正的依赖 · ${id}`); // 不丢弃异常引用。
+        for (const entry of dependencies.options) entry.selected = item.depends_on.includes(entry.value); // 还原多选状态。
+        dependencies.addEventListener("change",() => { item.depends_on = [...dependencies.selectedOptions].map(entry => entry.value); });
+        phaseGrid.append(node("p","使用 Ctrl / ⌘ 配合点击选择多条；取消全部选中表示无依赖。","hint"));
+        const remove = node("button","删除此交互","small danger"); // 删除前检查其他事件的依赖。
+        remove.type = "button"; remove.addEventListener("click",() => {
+          const dependents = interactions.filter(entry => entry !== item && entry.depends_on.includes(item.id)); // 被引用事件禁止静默删除。
+          if (dependents.length) { setStatus(`请先解除这些交互的依赖：${dependents.map(entry => entry.id).join("、")}。`,true); return; }
+          interactions = interactions.filter(entry => entry !== item); invalidate(); renderInteractions(); renderMode();
+        });
+        const actions = node("div","","toolbar"); // 避免删除操作与文字输入混排。
+        actions.append(remove); grid.append(actions); ui["interaction-list"].append(detail);
+      }
+      if (!interactions.length) ui["interaction-list"].append(node("p","尚无交互。需要描述相互影响时再添加。","hint"));
+      renderMode();
+    }
+    // 统一刷新清单相关视图，不改变原文或逐项数据开关。
+    function renderInventory() { renderList(); renderElement(); renderInteractions(); renderMode(); }
+    // 编辑元素 ID 时同步父级与交互引用，避免悬空关联。
+    function renameElement() {
+      const item = elements.find(entry => entry.id === selectedId); // 当前需要改名的稳定记录。
+      const newId = ui["element-id"].value.trim(); // ID 以非空字符串表示。
+      if (!item) return;
+      if (!newId || elements.some(entry => entry !== item && entry.id === newId)) { ui["element-id"].value = item.id; setStatus("元素 ID 不能为空或重名，已保留原 ID。",true); return; }
+      const oldId = item.id; // 更新全部引用前保留原 ID。
+      item.id = newId; selectedId = newId;
+      for (const entry of elements) if (entry.parent_id === oldId) entry.parent_id = newId; // 同步所属关系。
+      for (const entry of interactions) { if (entry.source_id === oldId) entry.source_id = newId; if (entry.target_id === oldId) entry.target_id = newId; } // 同步交互两端。
+      invalidate(); renderInventory();
+    }
+    // 汇总服务端未确认片段和警告，保留原始段落及字符范围以供补充。
+    function renderNotices(result) {
+      ui["review-list"].replaceChildren();
+      for (const fragment of result.unresolved_fragments ?? []) ui["review-list"].append(node("li",`${fragment.reason || "尚未确认具体细节"}${Number.isInteger(fragment.start) ? `（字符 ${fragment.start}–${fragment.end}）` : ""}\n${fragment.text}`)); // 明确展示无法拆解的原文。
+      for (const warning of result.warnings ?? []) ui["review-list"].append(node("li",warning)); // 不把服务警告包装成完整解析。
+      ui.review.hidden = !ui["review-list"].children.length;
+      ui["review-title"].textContent = result.extraction_status === "needs_element_details" ? "未确认细分 · 请补充具体细节" : "需要继续核对的内容";
+    }
+    // 只展示服务端返回的提示词，不在客户端编造细节或计算结果。
+    function renderReport(result) {
+      report = result; ui["full-prompt"].value = result.full_prompt; ui["negative-prompt"].value = result.negative_prompt ?? "";
+      const unresolved = result.unresolved_fragments?.length ?? 0; // 尚未被确认拆解的原文片段数。
+      const cautious = result.extraction_status === "needs_element_details" || unresolved > 0; // 明确区分未知内容与显式清单。
+      ui["result-state"].textContent = cautious ? "未确认细分" : result.extraction_status === "explicit_inventory" ? "依据逐项数据" : "依据分项文字";
+      ui["result-state"].classList.toggle("caution",cautious);
+      ui["result-note"].textContent = `${result.elements.length} 个已列明元素 · ${result.interactions.length} 条交互 · ${unresolved} 段待确认。${cautious ? "原文中的未知细节尚未自动拆分，请核对下方说明。" : "已列明的数据仍需由你核对覆盖范围。"}`;
+      renderNotices(result); renderElementPrompt(); updateActions();
+    }
+    // 统一解析后端错误格式，保持用户可读的失败原因。
+    async function responseData(response) {
+      const data = await response.json(); // 同源服务的 JSON 响应或错误说明。
+      if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : typeof data.message === "string" ? data.message : `服务返回 HTTP ${response.status}`);
+      return data;
+    }
+    // 显式生成或分项读取均经过版本与中止双重校验，输入变化后不再应用响应。
+    async function generate(importOnly = false) {
+      invalidate(importOnly ? "正在读取分项文字…" : "正在生成详细提示词…");
+      if (!ui.brief.value.trim() && (importOnly || !ui["use-inventory"].checked || !elements.length)) { setStatus("请先填写创意原文，或添加并启用逐项数据。",true); return; }
+      const version = revision; // 本次请求对应的输入版本。
+      const request = new AbortController(); // 本次请求专属中止器。
+      const payload = {text:ui.brief.value}; // 原文原样提交，不裁切、替换或修饰。
+      if (!importOnly && ui["use-inventory"].checked) { payload.elements = elements; payload.interactions = interactions; }
+      controller = request; busy = true; updateActions();
       try {
-        // 同源 API 是页面唯一数据来源；不加载第三方模型、脚本或资源。
-        const response = await fetch("/api/generate", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(readParameters()), signal:controller.signal });
-        if (!response.ok) throw new Error(`服务返回 HTTP ${response.status}`);
-        // 按既定格式检查最小渲染数据，异常响应不会进入动画循环。
-        const result = await response.json();
-        if (version !== requestVersion) return;
-        if (result.schema_version !== "fantasy-combat-v1" || !Array.isArray(result.frames) || !result.frames.length || !Array.isArray(result.elements) || !Array.isArray(result.events) || !Number.isFinite(result.duration_s)) {
-          throw new Error("素材响应格式不完整");
-        }
-        combat = result;
-        elementMap = new Map(result.elements.map(element => [element.id, element]));
-        currentTime = 0;
-        pending = false;
-        populateMaterial();
-        updateEnabledControls();
-        ui.message.hidden = true;
-        setText("scene-tag", "素材已就绪 · 点击播放");
-        setStatus(`推演就绪 · ${result.elements.length} 个元素 / ${result.events.length} 个事件 / ${result.frames.length} 帧。可播放、检查素材或导出 JSON。`);
-        renderCurrent();
-      } catch (error) {
-        if (controller.signal.aborted || version !== requestVersion) return;
-        ui.message.hidden = false;
-        ui.message.textContent = "素材服务暂不可用，请点击「生成战斗素材」重试。";
-        setText("scene-tag", "连接未完成");
-        setStatus(`生成未完成：${error.message}。请确认本地服务已启动。`, true);
-      } finally {
-        if (version === requestVersion) requestController = null;
-      }
-    }
-
-    // 用文本节点生成一条列表说明，输入可包含任意字符而不会执行。
-    function appendListText(parent, text) {
-      // 列表项只显示可追溯数据的文字表达。
-      const item = document.createElement("li");
-      item.textContent = typeof text === "string" ? text : text?.explanation ?? JSON.stringify(text);
-      parent.append(item);
-    }
-
-    // 响应到达后一次性构建元素表、事件链及完整素材说明。
-    function populateMaterial() {
-      // 保留上一组仍然存在的元素选择，便于对照参数变化。
-      const previousElement = ui.elementSelect.value;
-      ui.elementSelect.replaceChildren();
-      for (const element of combat.elements) { // 元素注册表中的原始对象，不增造后端元素。
-        // 原生选项会安全显示元素标签和稳定标识。
-        const option = document.createElement("option");
-        option.value = element.id;
-        option.textContent = `${element.label} · ${element.id}`;
-        ui.elementSelect.append(option);
-      }
-      if (elementMap.has(previousElement)) ui.elementSelect.value = previousElement;
-      showElement();
-      setText("clip-description", combat.description);
-      ui.clipPrompt.value = combat.full_prompt ?? "";
-      setText("clip-negative", combat.negative_prompt);
-      setText("outcome-label", combat.outcome?.label);
-      // 这里明确展示全片推演摘要，当前生命与护盾读数仍取当前帧。
-      const outcome = combat.outcome ?? {};
-      setText("outcome-detail", `发射 ${numberText(outcome.attack_energy)} → 接触 ${numberText(outcome.energy_at_contact)} → 护盾吸收 ${numberText(outcome.absorbed_energy)} → 余能 ${numberText(outcome.remaining_energy)}。预计伤害 ${numberText(outcome.damage)}；${outcome.impact_time_s == null ? "无有效接触" : `接触时刻 ${numberText(outcome.impact_time_s, 2)} s`}。`);
-      ui.timeline.max = String(combat.duration_s);
-      ui.timeline.value = "0";
-      setText("world-caption", `间距 ${numberText(combat.parameters.distance_m)} m · 偏移 ${numberText(combat.parameters.aim_offset_m)} m · 种子 ${combat.parameters.seed}`);
-      buildEventList();
-      // 列表用稳定标识和规则原文解释依赖，不由渲染器推断因果。
-      const relations = document.getElementById("relation-list");
-      relations.replaceChildren();
-      for (const relation of combat.causal_relations ?? []) { // 服务端明确给出的因果边。
-        appendListText(relations, `${relation.source} → ${relation.target} · ${relation.rule ?? relation.relation}`);
-      }
-      // 人类可读交互规则补充数值条件的语义。
-      const rules = document.getElementById("rule-list");
-      rules.replaceChildren();
-      for (const rule of combat.interaction_rules ?? []) appendListText(rules, rule); // 只显示后端解释。
-      // 假设单独折叠，避免与实测结论混淆。
-      const assumptions = document.getElementById("assumption-list");
-      assumptions.replaceChildren();
-      for (const assumption of combat.assumptions ?? []) appendListText(assumptions, assumption); // 保留规则设计的限制。
-    }
-
-    // 事件按钮可定位到对应时刻；时间条也直接使用事件起止时间。
-    function buildEventList() {
-      // DOM 容器与画布播放时间共同映射同一组服务端事件。
-      const list = document.getElementById("event-list");
-      // 小时间条用于展示事件在整段战斗中的分布。
-      const track = document.getElementById("event-track");
-      list.replaceChildren();
-      track.replaceChildren();
-      eventRows = [];
-      for (const event of combat.events) { // 保留响应中的事件顺序和标识。
-        // 事件行可通过键盘激活，并跳转到服务端定义的开始时间。
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = "event-row";
-        row.setAttribute("aria-label", `查看事件：${event.label}，${numberText(event.start_s, 2)} 秒`);
-        // 行首显示名称与时间，详细触发条件另起一行。
-        const top = document.createElement("span");
-        top.className = "event-top";
-        // 事件标题不经过 HTML 解释。
-        const label = document.createElement("span");
-        label.className = "event-label";
-        label.textContent = event.label;
-        // 秒数保留两位，便于定位接触前后的确定帧。
-        const time = document.createElement("span");
-        time.className = "event-time";
-        time.textContent = `${Number(event.start_s).toFixed(2)}–${Number(event.end_s).toFixed(2)} s`;
-        // 触发条件由后端说明，缺失时展示事件描述。
-        const reason = document.createElement("span");
-        reason.className = "event-reason";
-        reason.textContent = typeof event.trigger === "string" ? event.trigger : event.description;
-        top.append(label, time);
-        row.append(top, reason);
-        row.addEventListener("click", () => seekTo(event.start_s));
-        list.append(row);
-        eventRows.push({ event, row });
-        // 时间条长度仅按时间映射，不解释事件强弱。
-        const segment = document.createElement("span");
-        segment.style.left = `${100 * event.start_s / combat.duration_s}%`;
-        segment.style.width = `${Math.max(.3, 100 * (event.end_s - event.start_s) / combat.duration_s)}%`;
-        track.append(segment);
-      }
-    }
-
-    // 显示当前选中元素的原始数据、素材描述与来源依据。
-    function showElement() {
-      // 选择器的 id 与响应注册表一致，避免根据标签猜测元素。
-      const element = elementMap.get(ui.elementSelect.value);
-      if (!element) return;
-      setText("element-id", `ID / ${element.id} · ${element.kind} · OWNER / ${element.owner_id ?? "场景"}`);
-      setText("element-description", element.description);
-      setText("element-data", JSON.stringify(element.data, null, 2));
-      ui.elementPrompt.value = element.material_prompt ?? "";
-      setText("element-negative", element.negative_prompt);
-      setText("element-source", `来源依据：${element.source?.basis === "commonsense_assumption" ? "明确的创作设计假设" : element.source?.basis ?? "规则设计"}${element.source?.quote ? ` · 「${element.source.quote}」` : ""}`);
-    }
-
-    // 原生标签页切换，同时维护焦点顺序与辅助技术的选中状态。
-    function selectTab(tab, moveFocus = false) {
-      selectedTab = tab;
-      // 元素面板和完整分镜面板只显示其一。
-      const elementActive = tab === "element";
-      ui.elementPanel.hidden = !elementActive;
-      ui.clipPanel.hidden = elementActive;
-      ui.elementTab.setAttribute("aria-selected", String(elementActive));
-      ui.clipTab.setAttribute("aria-selected", String(!elementActive));
-      ui.elementTab.tabIndex = elementActive ? 0 : -1;
-      ui.clipTab.tabIndex = elementActive ? -1 : 0;
-      if (moveFocus) (elementActive ? ui.elementTab : ui.clipTab).focus();
-    }
-
-    // 二分查找当前帧；状态和特效只取已到达的帧，防止提前命中或扣血。
-    function sampleFrame(time) {
-      if (!combat) return null;
-      // 固定步长帧数组包含精确结束帧，二分同样支持非整步结束时间。
-      const frames = combat.frames;
-      // 左闭右闭搜索范围最后收敛到不晚于当前时刻的帧。
-      let low = 0;
-      // 右端下标属于同一有序帧数组。
-      let high = frames.length - 1;
-      while (low < high) {
-        // 向上取中点，避免低端相邻时无法推进。
-        const middle = Math.ceil((low + high) / 2);
-        if (frames[middle].t_s <= time + 1e-9) low = middle;
-        else high = middle - 1;
-      }
-      return frames[low];
-    }
-
-    // 用户跳转会暂停播放，并立即以对应帧重绘所有状态。
-    function seekTo(time) {
-      if (!combat || pending) return;
-      pausePlayback();
-      currentTime = Math.max(0, Math.min(combat.duration_s, Number(time)));
-      renderCurrent();
-    }
-
-    // 用户显式开始播放；到达结尾后再次播放会从头开始。
-    function startPlayback() {
-      if (!combat || pending || playing) return;
-      if (currentTime >= combat.duration_s) currentTime = 0;
-      playing = true;
-      ui.play.textContent = "Ⅱ 暂停";
-      ui.play.setAttribute("aria-label", "暂停战斗");
-      lastClock = performance.now();
-      animationId = requestAnimationFrame(tick);
-      setStatus("正在播放服务端帧数据；可暂停或拖动时间轴检查。" );
-    }
-
-    // 每个动画帧推进时钟，再读取后端固定步长数据；不做碰撞或伤害求解。
-    function tick(clock) {
-      if (!playing || !combat || pending) return;
-      currentTime = Math.min(combat.duration_s, currentTime + Math.max(0, (clock - lastClock) / 1000));
-      lastClock = clock;
-      renderCurrent();
-      if (currentTime >= combat.duration_s) {
-        pausePlayback();
-        setStatus("战斗播放结束。可以重播、切换预设或导出素材数据。" );
-        return;
-      }
-      animationId = requestAnimationFrame(tick);
-    }
-
-    // 同一采样帧同步更新舞台、时间线、事件高亮和状态读数。
-    function renderCurrent() {
-      // 使用当前或空帧绘制静态场景，空帧不会产生战斗反馈。
-      const frame = sampleFrame(currentTime);
-      drawScene(frame);
-      if (!combat || !frame) return;
-      ui.timeline.value = String(currentTime);
-      ui.timeline.setAttribute("aria-valuetext", `${currentTime.toFixed(2)} 秒，共 ${combat.duration_s.toFixed(2)} 秒`);
-      setText("time-label", `${currentTime.toFixed(2)} / ${combat.duration_s.toFixed(2)} s`);
-      setText("phase-label", phaseLabels[frame.phase] ?? frame.phase);
-      setText("scene-tag", pending ? "正在更新参数" : playing ? "帧数据播放中" : currentTime >= combat.duration_s ? "全片播放完成" : currentTime > 0 ? "已暂停 · 可逐帧检查" : "素材已就绪 · 点击播放");
-      setText("energy-value", numberText(frame.state?.["attacker.energy"]));
-      setText("shield-value", numberText(frame.state?.["shield.strength"]));
-      setText("hp-value", numberText(frame.state?.["defender.hp"]));
-      setText("ground-value", frame.state?.["ground.cracked"] ? "已开裂" : "完整");
-      // 当前事件完全依据后端 active_event_ids，高亮不由前端猜测接触时刻。
-      const activeIds = new Set(frame.active_event_ids ?? []);
-      for (const entry of eventRows) { // 引用既有节点，仅切换样式与可访问状态。
-        entry.row.classList.toggle("active", activeIds.has(entry.event.id));
-        entry.row.classList.toggle("complete", currentTime >= entry.event.end_s && !activeIds.has(entry.event.id));
-        if (activeIds.has(entry.event.id)) entry.row.setAttribute("aria-current", "step");
-        else entry.row.removeAttribute("aria-current");
-      }
-    }
-
-    // 容器缩放后重置高分屏画布，保持逻辑坐标和可见尺寸一致。
-    function resizeCanvas() {
-      // CSS 决定桌面与手机的不同宽高比。
-      const bounds = ui.canvas.getBoundingClientRect();
-      // 像素密度上限避免移动设备过大的绘制缓冲。
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      canvasWidth = bounds.width;
-      canvasHeight = bounds.height;
-      ui.canvas.width = Math.round(canvasWidth * ratio);
-      ui.canvas.height = Math.round(canvasHeight * ratio);
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      renderCurrent();
-    }
-
-    // 将世界坐标 [x,y,z]（米）投影到舞台；偏移 z 作为前后景分离显示。
-    function project(position) {
-      // 只用于镜头取景的距离，实际命中仍由后端帧和事件决定。
-      const distance = Number(combat?.parameters.distance_m ?? ui.distance_m.value);
-      return {
-        x: canvasWidth * (.19 + .62 * Number(position[0] ?? 0) / distance), // 两个角色保持在画面两端。
-        y: canvasHeight * .77 - Number(position[1] ?? 0) * canvasHeight * .135 + Number(position[2] ?? 0) * canvasHeight * .05 // 侧向偏移在预览中分离到前后景，便于辨认落空。
-      };
-    }
-
-    // 绘制封闭或开放折线；点由场景造型或后端效果坐标投影得到。
-    function path(points, close = false) {
-      ctx.beginPath();
-      ctx.moveTo(points[0][0], points[0][1]);
-      for (const point of points.slice(1)) ctx.lineTo(point[0], point[1]); // 按造型顺序连接。
-      if (close) ctx.closePath();
-    }
-
-    // 无网络资源的山崖、月轮、薄雾与演武台，均为静态程序化背景。
-    function drawEnvironment() {
-      // 以逻辑尺寸复用同一幅构图。
-      const w = canvasWidth;
-      // 地平线与人物高度随舞台高度缩放。
-      const h = canvasHeight;
-      // 天空渐变建立冷色远景。
-      const sky = ctx.createLinearGradient(0, 0, 0, h);
-      sky.addColorStop(0, "#101b24");
-      sky.addColorStop(.6, "#29423f");
-      sky.addColorStop(1, "#172926");
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, w, h);
-      // 淡月不随播放闪烁，移动设备也保留明确的远景焦点。
-      const moon = ctx.createRadialGradient(w * .58, h * .28, 0, w * .58, h * .28, h * .28);
-      moon.addColorStop(0, "#b9caa324");
-      moon.addColorStop(.55, "#b9caa30b");
-      moon.addColorStop(1, "#b9caa300");
-      ctx.fillStyle = moon;
-      ctx.fillRect(0, 0, w, h);
-      ctx.beginPath();
-      ctx.arc(w * .58, h * .28, h * .087, 0, Math.PI * 2);
-      ctx.fillStyle = "#c9d0ad22";
-      ctx.fill();
-      // 山峦层次固定，不产生与战斗无关的运动。
-      for (let layer = 0; layer < 3; layer += 1) { // 远、中、近三层山脊。
-        ctx.beginPath();
-        ctx.moveTo(0, h);
-        for (let index = 0; index <= 24; index += 1) { // 固定种子的轮廓点，保证重播一致。
-          // 波形组合只决定山形，不参与任何战斗计算。
-          const ridge = .42 + layer * .11 + Math.sin(index * 1.35 + layer * 3) * .10 + Math.cos(index * 2.7) * .045;
-          ctx.lineTo(index * w / 24, h * ridge);
-        }
-        ctx.lineTo(w, h);
-        ctx.closePath();
-        ctx.fillStyle = ["#263c3d", "#1c3131", "#162b29"][layer];
-        ctx.fill();
-      }
-      // 谷中横向雾带，增强角色与远景之间的可读性。
-      const mist = ctx.createLinearGradient(0, h * .4, 0, h * .76);
-      mist.addColorStop(0, "#9cb9a300");
-      mist.addColorStop(.6, "#a6c6ad12");
-      mist.addColorStop(1, "#a6c6ad00");
-      ctx.fillStyle = mist;
-      ctx.fillRect(0, h * .4, w, h * .4);
-      // 演武台边缘和透视地缝为世界坐标提供视觉参照。
-      path([[0,h*.77],[w*.27,h*.66],[w*.74,h*.67],[w,h*.8],[w,h],[0,h]], true);
-      ctx.fillStyle = "#293933";
-      ctx.fill();
-      ctx.strokeStyle = "#9bae7b26";
-      ctx.lineWidth = 1;
-      for (let line = 0; line < 9; line += 1) { // 石板缝向远处收束。
-        path([[w * .5 + (line - 4) * w * .035,h * .69],[w * .5 + (line - 4) * w * .22,h]]);
-        ctx.stroke();
-      }
-      for (let line = 0; line < 4; line += 1) { // 横缝增加近景厚度。
-        path([[0,h * (.78 + line * .064)],[w,h * (.79 + line * .064)]]);
-        ctx.stroke();
-      }
-      // 前景暗角保留主体焦点，避免覆盖状态标签。
-      const vignette = ctx.createRadialGradient(w*.5,h*.5,h*.12,w*.5,h*.5,w*.64);
-      vignette.addColorStop(0, "#09130d00");
-      vignette.addColorStop(1, "#07110f88");
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, w, h);
-    }
-
-    // 人物几何造型使用独立衣袍、发髻、手臂与实体剑，确保双方轮廓可辨。
-    function drawCultivator(position, facing, defender, frame) {
-      // 角色落脚点来自元素注册表的世界位置。
-      const foot = project(position);
-      // 角色高度读取米制元素数据，与世界投影使用相同的纵向比例。
-      const size = Number(elementMap.get(defender ? "defender" : "attacker")?.data?.height_m ?? 1.8)*canvasHeight*.135;
-      // 后退残影只在伤害结算后的反冲帧出现，格挡光爆不造成身体动作。
-      const afterimage = (frame?.effects ?? []).find(effect => effect.kind === "afterimage" && effect.element_id === "defender");
-      // 反冲幅度来自当前残影强度；不从光爆或全片结果倒推受击。
-      const recoil = defender && frame?.state?.["defender.pose"] === "recoiling" ? Math.min(1,afterimage?.strength ?? 0) : 0;
-      // 凝聚动作仅在后端给出 charge 特效时出现。
-      const charge = (frame?.effects ?? []).find(effect => effect.kind === "charge");
-      // 无接触时前倾角为零，防止提前受击。
-      const lean = recoil * -.14;
-      ctx.save();
-      ctx.translate(foot.x+recoil*size*.26, foot.y);
-      ctx.scale(facing, 1);
-      ctx.rotate(lean);
-      // 脚底投影不会被误认为命中特效。
-      ctx.fillStyle = "#050f0d66";
-      ctx.beginPath();
-      ctx.ellipse(0, 2, size * .34, size * .055, 0, 0, Math.PI * 2);
-      ctx.fill();
-      // 两套配色与肩部造型区分青衣进攻者、玄金守御者。
-      const robe = ctx.createLinearGradient(-size*.2,-size, size*.25,0);
-      robe.addColorStop(0, defender ? "#795d37" : "#3d807a");
-      robe.addColorStop(.45, defender ? "#3d3829" : "#20494c");
-      robe.addColorStop(1, defender ? "#181f20" : "#142b31");
-      path([[-size*.10,-size*.76],[size*.13,-size*.72],[size*.17,-size*.47],[size*.37,-size*.03],[size*.08,-size*.10],[-size*.06,0],[-size*.34,-size*.04],[-size*.15,-size*.49]], true);
-      ctx.fillStyle = robe;
-      ctx.fill();
-      ctx.strokeStyle = defender ? "#d3ad6755" : "#9dd9c355";
-      ctx.lineWidth = .8;
-      ctx.stroke();
-      // 内衬与束带给静态轮廓提供明确的身体方向。
-      path([[0,-size*.69],[size*.05,-size*.45],[size*.16,-size*.12],[-size*.04,-size*.1],[-size*.08,-size*.45]], true);
-      ctx.fillStyle = defender ? "#9e815040" : "#b6d6bd4a";
-      ctx.fill();
-      path([[-size*.14,-size*.46],[size*.15,-size*.47],[size*.16,-size*.42],[-size*.15,-size*.41]], true);
-      ctx.fillStyle = defender ? "#bc9b61" : "#86b4a2";
-      ctx.fill();
-      // 衣摆折线采用固定几何，不在未播放时自行摆动。
-      ctx.strokeStyle = defender ? "#b197554a" : "#73b3a24a";
-      for (let fold = 0; fold < 3; fold += 1) { // 三条衣褶构成宽袖长袍。
-        path([[-size*.10+fold*size*.07,-size*.38],[-size*.21+fold*size*.20,-size*.07]]);
-        ctx.stroke();
-      }
-      // 袖口伸向剑锋；蓄力时抬剑，守御者始终朝向对手。
-      const handY = !defender && charge ? -size * .57 : -size * .46;
-      path([[0,-size*.71],[size*.24,handY-size*.09],[size*.34,handY+size*.02],[size*.19,handY+size*.1],[-size*.05,-size*.49]], true);
-      ctx.fillStyle = defender ? "#544931" : "#30666a";
-      ctx.fill();
-      ctx.fillStyle = "#b8ac89";
-      ctx.beginPath();
-      ctx.arc(size*.29,handY,size*.035,0,Math.PI*2);
-      ctx.fill();
-      // 发髻、长发与侧脸保留可识别的修士形象。
-      ctx.fillStyle = "#10191c";
-      ctx.beginPath();
-      ctx.ellipse(-size*.035,-size*.88,size*.09,size*.11,-.1,0,Math.PI*2);
-      ctx.fill();
-      path([[-size*.12,-size*.9],[-size*.18,-size*.56],[-size*.07,-size*.69],[size*.01,-size*.85]], true);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-size*.055,-size*.99,size*.045,0,Math.PI*2);
-      ctx.fill();
-      path([[size*.016,-size*.94],[size*.08,-size*.89],[size*.075,-size*.82],[size*.015,-size*.81]], true);
-      ctx.fillStyle = "#b5ad92";
-      ctx.fill();
-      // 发带与肩线用各自主题色强调阵营。
-      ctx.strokeStyle = defender ? "#dab779" : "#a6d8c0";
-      ctx.lineWidth = Math.max(1,size*.012);
-      path([[-size*.11,-size*.95],[size*.03,-size*.96]]);
-      ctx.stroke();
-      // 实体剑始终可见，剑光则由独立的后端特效驱动。
-      ctx.save();
-      ctx.translate(size*.29,handY);
-      ctx.rotate(defender ? -.95 : charge ? -.2 : -.48);
-      path([[0,-size*.016],[size*.44,-size*.008],[size*.5,0],[size*.44,size*.008],[0,size*.018]],true);
-      ctx.fillStyle = defender ? "#e0c68d" : "#c8e8d9";
-      ctx.fill();
-      ctx.fillStyle = "#7a6948";
-      ctx.fillRect(-size*.1,-size*.018,size*.11,size*.036);
-      ctx.fillRect(0,-size*.06,size*.025,size*.12);
-      ctx.restore();
-      ctx.restore();
-      // 角色名和状态条位于头顶，当前帧扣血前不会显示伤害。
-      const initialHp = combat?.initial_state?.[defender ? "defender.hp" : "attacker.energy"];
-      // 状态比例来自后端同一状态键，而非视觉效果强度。
-      const currentHp = frame?.state?.[defender ? "defender.hp" : "attacker.energy"];
-      ctx.textAlign = "center";
-      ctx.font = `${Math.max(9,canvasWidth<500?9:11)}px "Microsoft YaHei", sans-serif`;
-      ctx.fillStyle = defender ? "#dac69d" : "#acd9c5";
-      ctx.fillText(elementMap.get(defender ? "defender" : "attacker")?.label ?? (defender ? "玄金守御者" : "青衣剑修"), foot.x, foot.y-size*1.20);
-      ctx.fillStyle = "#0b1917aa";
-      ctx.fillRect(foot.x-size*.3,foot.y-size*1.11,size*.6,3);
-      ctx.fillStyle = defender ? "#c4a16c" : "#93c9b3";
-      ctx.fillRect(foot.x-size*.3,foot.y-size*1.11,size*.6*(typeof initialHp === "number" && initialHp > 0 ? Math.max(0,Math.min(1,currentHp/initialHp)) : 1),3);
-    }
-
-    // 绘制尚存护盾或破盾碎片，形变仅取当前帧的盾特效和强度。
-    function drawShield(frame) {
-      // 护盾位置优先来自独立元素，缺失时使用守御者位置进行取景。
-      const shield = elementMap.get("shield");
-      // 仅作兜底构图，绝不决定护盾是否挡住剑气。
-      const distance = Number(combat?.parameters.distance_m ?? ui.distance_m.value);
-      // 有独立位置时遵循后端数据；默认取角色前方、躯干高度。
-      const position = shield?.data?.position_m ?? [distance-.35,1.2,0];
-      // 屏幕中心由世界坐标统一投影。
-      const center = project(position);
-      // 当前强度由帧给出，尚未生成时仅展示输入对应的静态防御轮廓。
-      const strength = frame?.state?.["shield.strength"] ?? Number(ui.shield.value);
-      // 护盾反馈必须来自当前 effects，不使用最终结果倒推。
-      const effect = (frame?.effects ?? []).find(item => item.kind === "shield");
-      // 透明度与形变取当前反馈强度，未接触时没有受击凹陷。
-      const deformation = effect ? Math.min(1,effect.strength) : 0;
-      // 护盾的米制半径决定可见尺寸，不用最终结果改变盾面大小。
-      const radius = Number(shield?.data?.radius_m ?? .75)*canvasHeight*.135;
-      if (strength > 0) {
-        ctx.save();
-        ctx.translate(center.x,center.y);
-        // 有反馈时向内压缩，但不改变任何后端状态。
-        ctx.scale(1-deformation*.2,1+deformation*.08);
-        // 半透明内光明确显示护盾的体积范围。
-        const glow = ctx.createRadialGradient(0,0,0,0,0,radius*1.15);
-        glow.addColorStop(0,"#d8b96b04");
-        glow.addColorStop(.8,`rgba(219,188,112,${.05+deformation*.11})`);
-        glow.addColorStop(1,"#d8b96b00");
-        ctx.fillStyle = glow;
-        ctx.beginPath();
-        ctx.ellipse(0,0,radius*.46,radius*1.15,0,0,Math.PI*2);
-        ctx.fill();
-        ctx.shadowColor = "#dfc37d";
-        ctx.shadowBlur = deformation ? 15 : 5;
-        ctx.strokeStyle = `rgba(220,193,126,${.5+deformation*.45})`;
-        ctx.lineWidth = 1.1+deformation*2;
-        ctx.beginPath();
-        ctx.ellipse(0,0,radius*.35,radius,0,0,Math.PI*2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#e3c37b55";
-        ctx.lineWidth = .6;
-        ctx.beginPath();
-        ctx.ellipse(0,0,radius*.42,radius*1.08,0,0,Math.PI*2);
-        ctx.stroke();
-        // 符箓沿椭圆排列，作为材质语言而非另一个效果引擎。
-        for (let index = 0; index < 12; index += 1) { // 十二个静态符文标记。
-          // 每个标记在同一盾面周围等角分布。
-          const angle = index*Math.PI/6;
-          // 符文的局部横坐标。
-          const x = Math.cos(angle)*radius*.385;
-          // 符文的局部纵坐标。
-          const y = Math.sin(angle)*radius*1.04;
-          path([[x-2,y-3],[x+2,y],[x-1,y+3]]);
-          ctx.stroke();
-        }
-        // 接触时画同心涟漪；未耗尽的盾面不会提前出现破裂纹。
-        if (deformation > .05) {
-          ctx.strokeStyle = `rgba(255,230,167,${deformation})`;
-          ctx.beginPath();
-          ctx.ellipse(-radius*.11,0,radius*.19,radius*.59,0,0,Math.PI*2);
-          ctx.stroke();
-        }
-        ctx.restore();
-      } else if (effect) {
-        ctx.save();
-        ctx.strokeStyle = `rgba(229,195,125,${deformation*.8})`;
-        ctx.lineWidth = 1.3;
-        for (let index = 0; index < 8; index += 1) { // 碎盾残弧只在破盾特效有效时显示。
-          // 根据特效强度向外分离的屏幕距离。
-          const shift = (1-deformation)*radius*.8;
-          // 碎片方向固定，逐次重播完全一致。
-          const angle = index*Math.PI/4;
-          ctx.beginPath();
-          ctx.ellipse(center.x+Math.cos(angle)*shift,center.y+Math.sin(angle)*shift,radius*.35,radius,0,angle,angle+.35);
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-    }
-
-    // 绘制柔光核心；颜色与半径只负责材质表现，强度由后端给定。
-    function drawGlow(x, y, radius, color, strength) {
-      if (radius <= 0 || strength <= 0) return;
-      // 柔和径向透明度避免全屏白闪。
-      const glow = ctx.createRadialGradient(x,y,0,x,y,radius);
-      glow.addColorStop(0,`rgba(${color},${Math.min(.85,strength*.75)})`);
-      glow.addColorStop(.22,`rgba(${color},${strength*.3})`);
-      glow.addColorStop(1,`rgba(${color},0)`);
-      ctx.fillStyle = glow;
-      ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
-    }
-
-    // 特效种类与位置完全取自当前帧 effects，只为数据选择具体二维笔触。
-    function drawEffect(effect, time) {
-      // 服务端约束强度为 0–1；渲染端裁切仅保护画布输入。
-      const strength = Math.max(0,Math.min(1,Number(effect.strength) || 0));
-      if (!strength || !Array.isArray(effect.position_m)) return;
-      // 冲击波沿场景地面展开；其他效果保留后端给定的高度。
-      const point = project(effect.kind === "shockwave" ? [effect.position_m[0],Number(elementMap.get("ground")?.data?.plane_y_m ?? 0),effect.position_m[2]] : effect.position_m);
-      // 特效尺度按舞台高度统一，不改变碰撞距离。
-      const unit = canvasHeight*.18;
-      ctx.save();
-      ctx.globalCompositeOperation = "screen";
-      if (effect.kind === "charge") {
-        drawGlow(point.x,point.y,unit*.95,"105,220,186",strength*.8);
-        ctx.strokeStyle = `rgba(170,246,212,${strength*.75})`;
-        ctx.lineWidth = 1;
-        for (let index = 0; index < 3; index += 1) { // 环绕剑锋的三层聚气弧。
-          // 减少动态偏好使用固定弧角，仍保留蓄力反馈。
-          const angle = reducedMotion.matches ? index*2 : time*1.4+index*2;
-          ctx.beginPath();
-          ctx.ellipse(point.x,point.y,unit*(.2+index*.12),unit*(.08+index*.06),-.5,angle,angle+Math.PI*1.25);
-          ctx.stroke();
-        }
-        drawParticles(point,unit*.7,strength,time,false);
-      } else if (effect.kind === "afterimage" && effect.element_id === "defender") {
-        // 角色残影保持衣袍形状，不误画成脚下的额外剑气。
-        const height = canvasHeight*.255;
-        ctx.globalAlpha = strength*.25;
-        ctx.fillStyle = "#c0bd8d";
-        path([[point.x-height*.11,point.y-height*.78],[point.x+height*.08,point.y-height*.74],[point.x+height*.28,point.y-height*.02],[point.x-height*.3,point.y-height*.04]],true);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(point.x-height*.03,point.y-height*.89,height*.08,0,Math.PI*2);
-        ctx.fill();
-      } else if (effect.kind === "trail" || effect.kind === "afterimage") {
-        // 剑气朝服务端投射方向延展；不根据位置推断是否命中。
-        const length = unit*(effect.kind === "afterimage" ? .9 : 1.6);
-        // 剑气尾迹透明渐变使运动方向可读。
-        const trail = ctx.createLinearGradient(point.x-length,point.y,point.x+unit*.18,point.y);
-        trail.addColorStop(0,"#7de5c000");
-        trail.addColorStop(.7,`rgba(126,226,196,${strength*.5})`);
-        trail.addColorStop(1,`rgba(224,255,232,${strength})`);
-        ctx.fillStyle = trail;
-        path([[point.x-length,point.y+unit*.09],[point.x-unit*.2,point.y-unit*.07],[point.x+unit*.35,point.y],[point.x-unit*.17,point.y+unit*.06]],true);
-        ctx.fill();
-        ctx.strokeStyle = `rgba(211,255,234,${strength})`;
-        ctx.lineWidth = 1.7;
-        ctx.shadowColor = "#9ceac3";
-        ctx.shadowBlur = reducedMotion.matches ? 6 : 13;
-        path([[point.x-length*.85,point.y+unit*.01],[point.x+unit*.28,point.y]]);
-        ctx.stroke();
-        // 刀锋弧形截面比光点更容易识别为剑气。
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.ellipse(point.x,point.y,unit*.14,unit*.39,-.28,-1.1,1.1);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        drawGlow(point.x,point.y,unit*.65,"113,224,189",strength*.4);
-      } else if (effect.kind === "impact") {
-        drawGlow(point.x,point.y,unit*1.8,"242,216,151",strength*.85);
-        drawGlow(point.x,point.y,unit*.45,"231,255,213",strength);
-        ctx.strokeStyle = `rgba(253,235,186,${strength*.85})`;
-        ctx.lineWidth = 1.5;
-        for (let index = 0; index < (reducedMotion.matches ? 6 : 13); index += 1) { // 放射接触火花只在 impact 帧出现。
-          // 固定方向避免随机闪烁，强度变化来自服务端。
-          const angle = index*2.399;
-          // 固定长短差异构成可重复的冲击轮廓。
-          const length = unit*(.4+(index%4)*.21)*strength;
-          path([[point.x+Math.cos(angle)*unit*.1,point.y+Math.sin(angle)*unit*.1],[point.x+Math.cos(angle)*length,point.y+Math.sin(angle)*length]]);
-          ctx.stroke();
-        }
-      } else if (effect.kind === "shockwave") {
-        // 传播进度独立于明暗包络，保证余波环始终从接触附近向外扩散。
-        const radius = unit*(.45+Number(effect.progress ?? 0)*2.2);
-        ctx.strokeStyle = `rgba(188,225,174,${strength*.7})`;
-        ctx.lineWidth = 1+strength*2;
-        ctx.beginPath();
-        ctx.ellipse(point.x,point.y,radius,radius*.25,0,0,Math.PI*2);
-        ctx.stroke();
-        drawGlow(point.x,point.y,radius,"192,215,149",strength*.22);
-      } else if (effect.kind === "debris") {
-        drawParticles(point,unit*1.8,strength,time,true,Number(effect.progress ?? 0));
-      }
-      ctx.restore();
-    }
-
-    // 固定序列粒子按传播进度扩散，强度只控制明暗；不求解能量或创建额外事件。
-    function drawParticles(point, radius, strength, time, debris, progress = 0) {
-      // 减少动态偏好降低细碎粒子数量。
-      const count = reducedMotion.matches ? 6 : debris ? Number(elementMap.get("debris")?.data?.fragment_count ?? 12) : 15;
-      for (let index = 0; index < count; index += 1) { // 每个粒子的位置是确定性绘制函数。
-        // 均匀错开的角度避免使用 Math.random 造成重播差异。
-        const angle = index*2.39996;
-        // 碎片按单调进度向外扩展，聚气粒子留在核心周围。
-        const spread = debris ? .2+progress*1.1 : .25+((index*7)%13)/17;
-        // 相位仅修饰视觉细节，系统减少动态时固定。
-        const drift = reducedMotion.matches ? 0 : Math.sin(time*2+index)*radius*.035;
-        // 当前粒子的屏幕横坐标。
-        const x = point.x+Math.cos(angle)*radius*spread+drift;
-        // 碎片下坠属于材质笔触，不会改变后端 ground.cracked 状态。
-        const y = point.y+Math.sin(angle)*radius*spread*(debris ? .5 : 1)+(debris ? (1.1*progress*progress-.8*progress)*radius : 0);
-        ctx.globalAlpha = strength*(.4+(index%3)*.2);
-        ctx.fillStyle = debris ? ["#bea46d","#b9c4aa","#668877"][index%3] : "#b2f1cf";
-        if (debris) {
-          path([[x-3,y-2],[x+3,y-1],[x+1,y+3]],true);
-          ctx.fill();
+        const response = await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:request.signal}); // 页面唯一生成入口。
+        const result = await responseData(response); // 后端负责文字拆分与提示词编排。
+        if (version !== revision) return;
+        if (result.schema_version !== "vfx-prompt-v2" || result.mode !== "PROMPT_ONLY" || !Array.isArray(result.elements) || !Array.isArray(result.interactions) || typeof result.full_prompt !== "string") throw new Error("服务响应不完整，请重新生成");
+        if (importOnly) {
+          if (result.elements.length) { loadInventory(result); ui["use-inventory"].checked = true; ui.reconcile.hidden = false; ui.reconcile.textContent = `已读取 ${result.elements.length} 个分项。请核对细节与待确认内容，再生成最终提示词。`; renderMode(); }
+          else { ui["use-inventory"].checked = false; renderMode(); ui.reconcile.hidden = false; ui.reconcile.textContent = "这段原文尚未确认细分。可补充分项文字，或手动添加元素；保留的旧清单不会提交。"; }
+          renderNotices(result); setStatus(result.elements.length ? "分项已读入编辑区，核对后点击「生成详细提示词」。" : "未确认细分：自由原文未被转换为假定的元素清单。");
         } else {
-          ctx.fillRect(x,y,index%3===0?2:1,index%3===0?2:1);
+          if (!ui["use-inventory"].checked) loadInventory(result); // 文本生成的检查器仅显示实际返回的元素，清除无关旧示例。
+          renderReport(result); setStatus(result.extraction_status === "needs_element_details" ? "已保留创意原文并生成谨慎的文字提示；具体细分仍待确认。" : "提示词已生成，可逐项检查、复制或导出 JSON。");
         }
-      }
-      ctx.globalAlpha = 1;
+      } catch (error) { if (!request.signal.aborted && version === revision) setStatus(`未完成：${error.message}。请检查输入后重试。`,true); }
+      finally { if (version === revision) { controller = null; busy = false; updateActions(); } }
     }
-
-    // 当前地面状态为开裂时才绘制裂缝，禁止由最终结果提前添加。
-    function drawGroundDamage(frame) {
-      if (!frame?.state?.["ground.cracked"]) return;
-      // 地面位置来自注册表，接触投影可用于裂缝中心的视觉定位。
-      const position = elementMap.get("debris")?.data?.position_m ?? elementMap.get("ground")?.data?.position_m ?? [Number(combat.parameters.distance_m),0,0];
-      // 贴地裂纹不使用剑气高度。
-      const point = project([position[0],0,position[2]]);
-      ctx.strokeStyle = "#0c1a14cc";
-      ctx.lineWidth = 2;
-      for (let index = 0; index < 7; index += 1) { // 七条确定性石台裂纹。
-        // 每条裂纹在地面平面展开。
-        const angle = index*Math.PI*2/7;
-        // 不同长度使裂纹看起来更自然。
-        const length = canvasHeight*(.1+(index%3)*.035);
-        path([[point.x,point.y],[point.x+Math.cos(angle+.15)*length*.5,point.y+Math.sin(angle+.15)*length*.16],[point.x+Math.cos(angle)*length,point.y+Math.sin(angle)*length*.35]]);
-        ctx.stroke();
-      }
-    }
-
-    // 主绘制顺序保持远景、地面、人物、护盾、特效；震屏遵循后端当前相机状态。
-    function drawScene(frame) {
-      if (!ctx || !canvasWidth || !canvasHeight) return;
-      ctx.clearRect(0,0,canvasWidth,canvasHeight);
-      ctx.save();
-      // 只有后端已确认接触且开启反冲震屏时应用位移；减少动态偏好关闭震屏。
-      const shake = frame?.state?.["impact.confirmed"] ? Number(frame?.state?.["camera.shake"] ?? 0) : 0;
-      if (shake > 0 && !reducedMotion.matches && playing) {
-        ctx.translate(Math.sin(currentTime*91)*shake*3,Math.cos(currentTime*77)*shake*2);
-      }
-      drawEnvironment();
-      drawGroundDamage(frame);
-      // 守御者和进攻者都从注册表读取世界坐标。
-      const attackerPosition = elementMap.get("attacker")?.data?.position_m ?? [0,0,0];
-      // 距离兜底仅用于生成前的静态构图。
-      const defenderPosition = elementMap.get("defender")?.data?.position_m ?? [Number(ui.distance_m.value),0,0];
-      drawCultivator(attackerPosition,1,false,frame);
-      drawCultivator(defenderPosition,-1,true,frame);
-      drawShield(frame);
-      // 特效注册表决定显示什么，不根据最终 outcome 添加命中、余波或碎片。
-      for (const effect of frame?.effects ?? []) drawEffect(effect,currentTime); // 精确消费当前帧的效果列表。
-      // 某些帧含投射物但不含 trail 时，仍按显式位置显示剑气核心。
-      if (frame?.projectile_position_m && !(frame.effects ?? []).some(effect => effect.kind === "trail")) {
-        drawEffect({element_id:"projectile",kind:"trail",strength:Math.min(1,Number(frame.state?.["projectile.energy"] ?? 0)/100),position_m:frame.projectile_position_m},currentTime);
-      }
-      ctx.restore();
-    }
-
-    // 复制当前面板提示词；权限不可用时选中原文供用户手动复制。
-    async function copyPrompt() {
-      // 只复制当前可见面板，失败时也能聚焦到相同文本。
-      const target = selectedTab === "element" ? ui.elementPrompt : ui.clipPrompt;
+    // 从同源默认接口读取明确标注的详细示例，用户已编辑时不会覆盖输入。
+    async function loadExample() {
+      invalidate("正在载入详细示例…");
+      const version = revision; // 用户操作后本次默认请求失效。
+      const request = new AbortController(); // 默认接口同样可被输入立即取消。
+      controller = request; busy = true; updateActions();
       try {
-        if (!navigator.clipboard?.writeText) throw new Error("剪贴板不可用");
-        await navigator.clipboard.writeText(target.value);
-        setStatus("已复制当前提示词，可粘贴到后续素材制作流程。" );
-      } catch {
-        target.focus();
-        target.select();
-        setStatus("浏览器未允许自动复制；提示词已选中，请按 Ctrl+C（Mac 使用 ⌘C）复制。" );
-      }
+        const response = await fetch("/api/defaults",{signal:request.signal}); // 示例数据仅由本地接口提供。
+        const data = await responseData(response); // 不在页面内保留固定元素模板。
+        if (version !== revision) return;
+        if (typeof data.text !== "string" || !Array.isArray(data.elements) || !Array.isArray(data.interactions)) throw new Error("详细示例格式不完整");
+        ui.brief.value = data.text; loadInventory(data); ui["use-inventory"].checked = true;
+        ui["input-origin"].textContent = `详细示例 · ${elements.length} 项，可自由删改`;
+        ui.reconcile.hidden = false; ui.reconcile.textContent = "当前为详细示例。改写原文会关闭逐项数据，核对清单后可重新启用；也可清空内容开始创作。";
+        renderMode(); setStatus("详细示例已载入，核对或编辑后点击生成。");
+      } catch (error) { if (!request.signal.aborted && version === revision) setStatus(`示例未载入：${error.message}。仍可直接输入自己的创意。`,true); }
+      finally { if (version === revision) { controller = null; busy = false; updateActions(); } }
     }
-
-    // 下载未经改写的生成结果，包含元素、事件、因果边和所有固定步长帧。
-    function downloadMaterial() {
-      if (!combat || pending) return;
-      // UTF-8 JSON 保留中文，不向任何外部站点上传。
-      const blob = new Blob([JSON.stringify(combat,null,2)],{type:"application/json;charset=utf-8"});
-      // 本地对象 URL 在触发下载后及时释放。
-      const url = URL.createObjectURL(blob);
-      // 临时链接仅存在于本次点击，不保留下载脚手架。
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `causal-combat-seed-${combat.parameters.seed}.json`;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url),1000);
-      setStatus("已导出完整 JSON：包含素材描述、元素数据、事件与播放帧。" );
+    // 复制只面向有效报告；浏览器权限不足时选择同一文本供手动复制。
+    async function copyText(target) {
+      if (!report || !target.value) return;
+      try { await navigator.clipboard.writeText(target.value); setStatus("提示词已复制。"); }
+      catch { target.focus(); target.select(); setStatus("提示词已选中，请按 Ctrl+C / ⌘C 复制。"); }
     }
-
-    // 控件绑定集中在此处，每次参数变化都经过同一套请求失效流程。
-    function bindControls() {
-      ui.form.addEventListener("submit", event => { // 显式生成跳过输入防抖。
-        event.preventDefault();
-        scheduleGenerate(0);
-      });
-      for (const control of [ui.charge,ui.distance_m,ui.shield,ui.aim_offset_m,ui.seed]) { // 数值参数的共同输入路径。
-        control.addEventListener("input", () => {
-          for (const button of document.querySelectorAll("[data-preset]")) button.setAttribute("aria-pressed","false"); // 手工输入取消预设选中态。
-          scheduleGenerate();
-        });
-      }
-      ui.text.addEventListener("input", () => scheduleGenerate(650));
-      for (const button of document.querySelectorAll("[data-preset]")) { // 预设不改变创意原文和种子。
-        button.addEventListener("click", () => {
-          for (const [name,value] of Object.entries(presets[button.dataset.preset])) ui[name].value = String(value); // 将预设数值写入可访问的原生控件。
-          for (const item of document.querySelectorAll("[data-preset]")) item.setAttribute("aria-pressed",String(item===button)); // 仅选中当前预设。
-          scheduleGenerate(0);
-        });
-      }
-      ui.play.addEventListener("click", () => {
-        if (playing) {
-          pausePlayback();
-          renderCurrent();
-          setStatus(`已暂停在 ${currentTime.toFixed(2)} 秒。`);
-        } else startPlayback();
-      });
-      ui.replay.addEventListener("click", () => {
-        pausePlayback();
-        currentTime = 0;
-        renderCurrent();
-        startPlayback();
-      });
-      ui.reset.addEventListener("click", () => {
-        seekTo(0);
-        setStatus("已回到开场，参数与素材保持可检查状态。" );
-      });
-      ui.timeline.addEventListener("input", () => seekTo(ui.timeline.value));
-      ui.elementSelect.addEventListener("change",showElement);
-      ui.elementTab.addEventListener("click",() => selectTab("element"));
-      ui.clipTab.addEventListener("click",() => selectTab("clip"));
-      for (const tab of [ui.elementTab,ui.clipTab]) { // 标签页支持标准左右方向键与 Home/End。
-        tab.addEventListener("keydown",event => {
-          if (!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
-          event.preventDefault();
-          selectTab(event.key==="Home"?"element":event.key==="End"?"clip":selectedTab==="element"?"clip":"element",true);
-        });
-      }
-      ui.copy.addEventListener("click",copyPrompt);
-      ui.download.addEventListener("click",downloadMaterial);
-      document.addEventListener("visibilitychange",() => {
-        if (document.hidden && playing) {
-          pausePlayback();
-          setStatus("页面已切至后台，战斗暂停。返回后可继续播放。" );
-        }
-      });
-      reducedMotion.addEventListener("change",() => {
-        setText("motion-note",reducedMotion.matches?"已减少动态：关闭震屏、降低粒子密度":"点击播放，或拖动时间轴逐帧查看");
-        renderCurrent();
-      });
+    // 本地导出未经客户端改写的有效响应，无额外上传或存储。
+    function downloadReport() {
+      if (!report) return;
+      const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json;charset=utf-8"})); // 仅本次下载使用的对象 URL。
+      const link = document.createElement("a"); // 临时下载节点，点击后立即移除。
+      link.href = url; link.download = "vfx-prompt.json"; document.body.append(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url),1000); setStatus("已导出当前完整生成报告。");
     }
-
-    // 首次加载读取服务默认值，再生成静态开场；始终等待用户主动播放。
-    async function initialize() {
-      bindControls();
-      updateInputLabels();
-      setText("motion-note",reducedMotion.matches?"已减少动态：关闭震屏、降低粒子密度":"点击播放，或拖动时间轴逐帧查看");
-      // 容器观察器只维护画布分辨率，不启动动画。
-      const observer = new ResizeObserver(resizeCanvas);
-      observer.observe(ui.canvas);
-      resizeCanvas();
-      // 用户输入发生前，允许默认接口初始化控件。
-      const initialVersion = requestVersion;
-      try {
-        // 默认值与生成接口均使用相同源，不引入远程依赖。
-        const response = await fetch("/api/defaults");
-        if (!response.ok) throw new Error("默认值不可用");
-        // 默认值只应用一次；如果用户已经操作，保留其当前输入。
-        const defaults = await response.json();
-        if (requestVersion !== initialVersion) return;
-        for (const name of ["text","charge","distance_m","shield","aim_offset_m","seed"]) { // 仅接受已知的控件名。
-          if (defaults[name] != null) ui[name].value = String(defaults[name]);
-        }
-      } catch {
-        if (requestVersion !== initialVersion) return;
-        // 默认接口故障时仍可使用页面显示的同一组输入请求生成。
-        setStatus("默认值接口不可用，正在使用页面参数尝试生成。" );
-      }
-      if (requestVersion === initialVersion) scheduleGenerate(0);
-    }
-
-    initialize();
+    // 所有编辑路径都使请求和旧结果失效；生成始终由用户明确触发。
+    ui.brief.addEventListener("input",() => {
+      invalidate(); ui["use-inventory"].checked = false; ui["input-origin"].textContent = "自定义原文";
+      ui.reconcile.hidden = false; ui.reconcile.textContent = "原文已修改，逐项数据已关闭。清单仍保留供你对照；请核对并重新启用，或仅根据原文生成。"; renderMode();
+    });
+    ui["use-inventory"].addEventListener("change",() => { invalidate(); renderMode(); });
+    ui.clear.addEventListener("click",() => { invalidate("内容已清空，可以开始新的创作。"); ui.brief.value = ""; elements = []; interactions = []; selectedId = ""; ui["use-inventory"].checked = false; ui["input-origin"].textContent = "空白创作"; ui.reconcile.hidden = true; renderInventory(); });
+    ui["load-example"].addEventListener("click",loadExample);
+    ui["read-text"].addEventListener("click",() => generate(true));
+    ui.generate.addEventListener("click",() => generate());
+    ui["add-element"].addEventListener("click",() => { const item = {id:nextId("e"),name:"未命名细节",parent_id:null,attributes:{}}; /* 由用户新建的独立记录。 */ elements.push(item); selectedId = item.id; invalidate("已添加具体元素；使用逐项数据生成前，请确认开关已启用。"); renderInventory(); });
+    ui["element-id"].addEventListener("input",() => invalidate());
+    ui["element-id"].addEventListener("change",renameElement);
+    ui["element-name"].addEventListener("input",() => { const item = elements.find(entry => entry.id === selectedId); /* 当前选中的可编辑记录。 */ if (item) { item.name = ui["element-name"].value; invalidate(); renderList(); renderInteractions(); } });
+    ui["element-parent"].addEventListener("change",() => { const item = elements.find(entry => entry.id === selectedId); /* 父级引用直接绑定到稳定 ID。 */ if (item) { item.parent_id = ui["element-parent"].value || null; invalidate(); renderList(); } });
+    ui["add-attribute"].addEventListener("click",() => {
+      const item = elements.find(entry => entry.id === selectedId); // 新属性归属于当前元素。
+      if (!item) return;
+      let index = 1; // 不覆盖已有的同名属性。
+      while (Object.hasOwn(item.attributes,`属性${index}`)) index += 1;
+      item.attributes = {...item.attributes,[`属性${index}`]:""}; invalidate(); renderAttributes(item);
+    });
+    ui["delete-element"].addEventListener("click",() => {
+      const children = elements.filter(item => item.parent_id === selectedId); // 子元素需要用户先调整所属关系。
+      const references = interactions.filter(item => item.source_id === selectedId || item.target_id === selectedId); // 交互引用不得被静默删除。
+      if (children.length || references.length) { setStatus(`此项仍被引用，请先处理${children.length ? `子项 ${children.map(item => item.id).join("、")}` : ""}${children.length && references.length ? "；" : ""}${references.length ? `交互 ${references.map(item => item.id).join("、")}` : ""}。`,true); return; }
+      elements = elements.filter(item => item.id !== selectedId); selectedId = elements[0]?.id ?? ""; invalidate(); renderInventory();
+    });
+    ui["add-interaction"].addEventListener("click",() => {
+      const item = {id:nextId("i"),source_id:"",target_id:"",trigger:"",response:"",before:"",during:"",after:"",depends_on:[]}; // 新交互不假定双方或响应内容。
+      interactions.push(item); invalidate(); renderInteractions(item.id);
+    });
+    ui["copy-prompt"].addEventListener("click",() => copyText(ui["full-prompt"]));
+    ui["copy-element"].addEventListener("click",() => copyText(ui["element-prompt"]));
+    ui.download.addEventListener("click",downloadReport);
+    renderInventory(); loadExample();
   </script>
 </body>
 </html>
