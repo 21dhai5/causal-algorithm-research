@@ -11,6 +11,18 @@
 - [参与研究与提交提案](CONTRIBUTING.md)
 - [因果事件分镜 MVP](docs/storyboard-mvp.md)：文本规则解析、事件图、时间片段、逐镜提示词及可选图像适配器；分镜静帧不等于连续视频。
 
+- [人脸提示词工具](docs/face-prompt-tool.md)：一句描述补全为完整提示词，支持本机页面、命令行和持久化文本去重；属于有限规则设计补全，不是学习得到的因果推断。
+
+## 人脸提示词工具
+
+Python 3.12+ 标准库即可运行。在仓库根目录启动后，打开 <http://127.0.0.1:8765>：
+
+```powershell
+python -B experiments/run_face_prompt.py --serve
+```
+
+页面只需一个描述输入，支持复制和再次生成；也可用 `python -B experiments/run_face_prompt.py --text "一位成年女性的正面写实肖像"`。无需 API 密钥、图像或训练数据；仅按有限规则生成文字，不保证实际图像或人脸身份不同。历史位置、去重边界和命令参数见[使用说明](docs/face-prompt-tool.md)。
+
 ## 文本生成分镜
 
 只用 Python 3.12+ 标准库，无需模型或 NumPy：
