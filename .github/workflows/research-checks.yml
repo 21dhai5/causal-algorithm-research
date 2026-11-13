@@ -26,3 +26,22 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements.lock
       - name: Run synthetic invariants and chronological experiment
         run: python -B experiments/run_synthetic.py --seed 7 --samples 400 --replications 3 --bootstrap-draws 100 --output "${{ runner.temp }}/synthetic-ci.json"
+      - name: Plan causal-event storyboard without model credentials
+        run: python -B experiments/run_storyboard.py --text "一个男孩踢了一下足球，足球滚向桌子并撞倒了桌上的水杯。" --output "${{ runner.temp }}/storyboard-example"
+      - name: Verify storyboard coverage and offline provenance
+        run: |
+          python -B - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          # report 只读取本次 CI 离线生成的分镜，不访问凭据和真实数据。
+          report = json.loads((Path(os.environ['RUNNER_TEMP']) / 'storyboard-example/storyboard.json').read_text(encoding='utf-8'))
+          # shots 是依次播放的镜头；故事事件的并行关系另存。
+          shots = report['shots']
+          assert len(shots) == 3
+          assert shots[0]['start_s'] == 0 and shots[-1]['end_s'] == 6
+          assert all(left['end_s'] == right['start_s'] and left['end_state'] == right['start_state'] for left, right in zip(shots, shots[1:]))
+          assert shots[-1]['end_state']['cup.pose'] == 'tipped_on_table'
+          assert all(shot['image']['path'] is None and shot['image']['status'] == 'not_requested' for shot in shots)
+          assert report['generation_kind'] == 'STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO'
+          PY

@@ -9,5 +9,8 @@ description = "Synthetic-only chronological causal and prediction research proto
 requires-python = ">=3.12"
 dependencies = ["numpy>=2.0,<3"] # 仅依赖稳定的数组与线性代数接口。
 
+[project.scripts]
+causal-storyboard = "causal_storyboard.cli:main" # 可选安装后的分镜命令；源码入口不需要 NumPy。
+
 [tool.setuptools.packages.find]
 where = ["src"] # 源目录可直接通过 PYTHONPATH 导入。
