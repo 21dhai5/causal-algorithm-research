@@ -10,6 +10,19 @@
 - [实际执行的实验与审查](docs/executed-validation.md)
 - [参与研究与提交提案](CONTRIBUTING.md)
 - [因果事件分镜 MVP](docs/storyboard-mvp.md)：文本规则解析、事件图、时间片段、逐镜提示词及可选图像适配器；分镜静帧不等于连续视频。
+- [人物多视图提示词生成器](docs/character-multiview.md)：共享人物身份，按相机方位推导地标可见性，生成四／八视图或自选视图的完整提示词，支持逐视角复制与 JSON 导出。
+
+## 人物多视图提示词生成器
+
+Python 3.12+ 标准库即可运行，无需 API 密钥或安装前端依赖。在仓库根目录启动后，打开 <http://127.0.0.1:8767>：
+
+```powershell
+python -B experiments/run_character.py --serve
+```
+
+填写人物描述与画面风格，将非对称特征绑定到人物自身的前、后、左、右表面，选择标准四视图、完整八视图或自定义视角后生成。每个视图保留同一身份，分别说明朝向相机、背向相机和掠射边界的特征；可复制整套或单个视图，并导出 JSON。修改设定会将旧结果标记为待更新，重新生成后才能复制和导出。
+
+命令行示例：`python -B experiments/run_character.py --text "一位穿白色宇航服的成年宇航员" --views front,right,back,left`。自定义描述未提供地标时不添加示例配饰。这里的因果关系来自显式设计规则，只生成文本，不估计现实因果效应或保证图像身份一致；输入格式与算法边界见[使用说明](docs/character-multiview.md)。
 
 ## 文本生成分镜
 
