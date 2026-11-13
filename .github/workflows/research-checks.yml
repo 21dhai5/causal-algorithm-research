@@ -45,3 +45,34 @@ jobs:
           assert all(shot['image']['path'] is None and shot['image']['status'] == 'not_requested' for shot in shots)
           assert report['generation_kind'] == 'STORYBOARD_STILL_IMAGES_NOT_CONTINUOUS_VIDEO'
           PY
+      - name: Verify combat branches and causal playback
+        run: |
+          PYTHONPATH=src python -B - <<'PY'
+          from causal_combat import build_combat
+          # scenarios 用四类输入检验同一套规则，不把设计模拟当作实测标签。
+          scenarios = {
+              'hit': {'charge': 0.95, 'distance_m': 6, 'shield': 24},
+              'blocked': {'charge': 0.55, 'shield': 120},
+              'miss': {'aim_offset_m': 4},
+              'insufficient_energy': {'charge': 0},
+          }
+          for kind, parameters in scenarios.items():
+              # report 同时提供素材、事件与状态帧，回放必须从初态到同一终态。
+              report = build_combat(**parameters)
+              assert report['mode'] == 'RULE_BASED_DESIGN_SIMULATION'
+              assert report['outcome']['kind'] == kind
+              assert report['frames'][0]['t_s'] == 0
+              assert report['frames'][0]['state']['attacker.energy'] == report['initial_state']['attacker.energy']
+              assert report['frames'][-1]['state'] == report['final_state']
+              assert report['frames'][-1]['t_s'] == report['duration_s']
+              # contact 为实际接触时刻；未接触的帧禁止提前出现伤害与环境破坏。
+              contact = report['outcome']['impact_time_s']
+              for frame in report['frames']:
+                  if contact is None or frame['t_s'] < contact:
+                      assert frame['state']['defender.hp'] == 100
+                      assert not frame['state']['ground.cracked']
+                      assert frame['state']['camera.shake'] == 0
+              if kind != 'hit':
+                  assert report['final_state']['defender.hp'] == 100
+                  assert not report['final_state']['ground.cracked']
+          PY

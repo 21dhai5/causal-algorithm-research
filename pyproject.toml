@@ -12,9 +12,11 @@ dependencies = ["numpy>=2.0,<3"] # 仅依赖稳定的数组与线性代数接口
 [project.scripts]
 causal-storyboard = "causal_storyboard.cli:main" # 可选安装后的分镜命令；源码入口不需要 NumPy。
 causal-face = "causal_face.cli:main" # 单输入人脸提示词及回环网页服务，仅依赖标准库。
+causal-combat = "causal_combat.cli:main" # 玄幻战斗素材、固定步长状态与本机交互预演。
 
 [tool.setuptools.packages.find]
 where = ["src"] # 源目录可直接通过 PYTHONPATH 导入。
 
 [tool.setuptools.package-data]
 causal_face = ["web.html"] # 安装后的本地服务仍可读取随包网页。
+causal_combat = ["web.html"] # 战斗预演页面不依赖外部字体、脚本或素材。
