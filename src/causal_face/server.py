@@ -139,9 +139,11 @@ class FaceRequestHandler(BaseHTTPRequestHandler):
             if len(raw) != length:
                 raise FacePromptError("请求体不完整。")
             body = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_fields, parse_constant=_invalid_constant)  # 不自动接受其他 Unicode 编码。
-            if not isinstance(body, dict) or set(body) != {"prompt"}:
-                raise FacePromptError("请求应只包含 prompt 字符串字段。")
-            self._json(200, generate_prompt(body["prompt"], self.server.history))
+            if not isinstance(body, dict) or "prompt" not in body or set(body) - {"prompt", "expression", "intensity", "cause"}:
+                raise FacePromptError("请求必须包含 prompt，且仅可附加 expression、intensity、cause 字段。")
+            # 缺省值与 Python/CLI 一致；生成器在接触共享账本前统一验证类型和组合。
+            self._json(200, generate_prompt(body["prompt"], self.server.history, expression=body.get("expression"),
+                                            intensity=body.get("intensity", "medium"), cause=body.get("cause", "")))
         except VariationExhausted as error:
             self._json(409, {"error": str(error)})
         except FacePromptError as error:

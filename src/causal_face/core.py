@@ -69,6 +69,37 @@ _CONSERVATIVE_CHOICES = {  # 未理解原文时只变化制作侧重，不新增
         "制作侧重：在原文风格内强调局部细节与整体比例的协调，服从指定构图。",
     ),
 }
+EXPRESSION_LABELS = {  # 公开稳定代码供命令行与接口共用；不由情境自动分类。
+    "neutral": "中性",  # 放松面部张力，不增加笑怒等表情。
+    "joy": "喜悦",  # 使用可见肌肉变化表达作者选择的喜悦。
+    "sadness": "悲伤",  # 使用眉眼与唇角变化表达作者选择的悲伤。
+    "anger": "愤怒",  # 使用眉间与口周张力表达作者选择的愤怒。
+    "surprise": "惊讶",  # 开眼与张嘴建议仍服从原文部位约束。
+    "fear": "恐惧",  # 仅提供绘画目标，不判断人物实际心理。
+    "disgust": "厌恶",  # 仅调整局部肌肉，不改变鼻型或身份。
+}
+INTENSITY_LABELS = {  # 强度控制肌肉变化幅度，不表示测量值或情绪概率。
+    "low": "低强度，变化轻微",  # 弱化选定表情的可见幅度。
+    "medium": "中强度，变化清晰适度",  # 缺省的表情绘画幅度。
+    "high": "高强度，变化明显但不夸张变形",  # 明显变化仍保持既有人物比例。
+}
+MAX_CAUSE_CHARS = 500  # 触发情境只作设计文本，不进入情绪识别或持久化正文。
+_EXPRESSION_FEATURES = {  # 每种表情依次描述眉、眼、颊、嘴的可见肌肉变化。
+    "neutral": ("眉部放松，眉峰自然", "眼周放松，眼裂保持自然状态", "面颊放松，减少主动上提", "唇角接近水平，口周张力放松"),  # 中性不默认闭眼或闭嘴。
+    "joy": ("眉部舒展，眉峰柔和", "眼周收拢，眼尾弧线柔和", "面颊上提，鼻唇区出现相容的细褶", "双侧嘴角上扬"),  # 喜悦不要求露齿或张嘴。
+    "sadness": ("内眉上提，眉间微收", "上眼睑轻垂，眼周张力降低", "面颊上提减弱，颊部轮廓松缓", "唇角下移，口周张力略降"),  # 悲伤不强制流泪。
+    "anger": ("眉头向内下方收拢", "上下眼睑张力增加", "颊部肌肉收紧", "口周肌肉紧张，唇线趋于平直"),  # 愤怒不增加攻击动作。
+    "surprise": ("双眉抬高，眉弓上方褶皱增加", "上眼睑抬起，眼裂扩大", "颊部肌肉放松", "下颌轻度下移，嘴唇分开形成圆形开口"),  # 嘴部原文约束会移除开口建议。
+    "fear": ("眉头向上内侧提起", "上眼睑抬起，下眼睑紧张", "上颊略紧，颊部轮廓拉伸", "唇角横向拉伸，双唇略分开"),  # 恐惧不自动添加逃跑或其他情节。
+    "disgust": ("眉头下压并靠拢", "眼周收紧，眼裂略窄", "鼻旁与上颊收紧，出现皱鼻肌肉褶皱", "上唇轻提，口周收紧"),  # 局部肌肉褶皱不替换鼻部几何。
+}
+_EXPRESSION_PARTS = (  # 任何提及部位的原文均优先保留，避免将否定错误反转。
+    ("眉部", r"眉|brow"),  # 眉形、眉部动作或遮挡都锁定眉部建议。
+    ("眼部", r"眼|瞳|睫|盲|eye|pupil|iris|blind|wink"),  # 眼型、开闭和眼周限制均不被覆盖。
+    ("面颊", r"颊|顴|颧|鼻|cheek|nose|nasal"),  # 上颊与皱鼻联动，鼻部限制同样阻止附加褶皱。
+    ("嘴部", r"嘴|唇|牙|齿|口型|闭口|張口|张口|口角|下颌|下頜|下巴|下顎|mouth|lip|teeth|tooth|jaw|chin"),  # 不覆盖闭嘴、露齿或下颌动作。
+)
+_FIXED_EXPRESSION = re.compile(r"表情|神情|笑|哭|怒|悲|冷漠|严肃|惊讶|恐惧|害怕|厌恶|平静|\b(?:expression\w*|smil\w*|laugh\w*|cry\w*|sad\w*|angry|surpris\w*|fear\w*|disgust\w*|serious|joy\w*|neutral(?!\s+(?:background|backdrop|lighting|light|gr[ae]y)))\b", re.I)  # 已有表情保守保留；避免把中性背景或 acrylic 中的字母当作表情。
 
 
 class FacePromptError(ValueError):
@@ -89,6 +120,48 @@ def validate_prompt(prompt: str) -> None:
         raise FacePromptError("提示词包含无效的 Unicode 字符。") from error
     if "\x00" in prompt:
         raise FacePromptError("提示词不能包含空字符。")
+
+
+# 在创建账本前验证可选设计参数；缺省强度与空情境兼容旧调用。
+def validate_expression(expression: str | None = None, intensity: str = "medium", cause: str = "") -> None:
+    if expression is not None and (not isinstance(expression, str) or expression not in EXPRESSION_LABELS):
+        raise FacePromptError("expression 必须为空或 neutral、joy、sadness、anger、surprise、fear、disgust 之一。")
+    if not isinstance(intensity, str) or intensity not in INTENSITY_LABELS:
+        raise FacePromptError("intensity 必须是 low、medium、high 之一。")
+    if not isinstance(cause, str) or len(cause) > MAX_CAUSE_CHARS or cause and not cause.strip():
+        raise FacePromptError("cause 必须是空字符串或 1 至 500 字符的非空情境描述。")
+    try:
+        cause.encode("utf-8")
+    except UnicodeEncodeError as error:
+        raise FacePromptError("触发情境包含无效的 Unicode 字符。") from error
+    if "\x00" in cause:
+        raise FacePromptError("触发情境不能包含空字符。")
+    if expression is None and (intensity != "medium" or cause):
+        raise FacePromptError("请先选择 expression，再指定强度或触发情境。")
+
+
+# 仅编排调用方已验证的设计选择，原文约束和人物身份始终优先。
+def _expression_plan(prompt: str, expression: str | None, intensity: str, cause: str) -> dict | None:
+    if expression is None:
+        return None
+    label = EXPRESSION_LABELS[expression]  # 中文显示名来自显式选择，不读取情境推断。
+    strength = INTENSITY_LABELS[intensity]  # 全部部位沿用同一强度，不随机重选。
+    preserve = bool(_NEGATION.search(prompt) or _FIXED_EXPRESSION.search(prompt) or re.search(r"只|仅|保持|\bonly\b", prompt, re.I))  # 否定、原有表情和全局限制的作用域不猜测。
+    rules = [  # 情境、目标、部位构成可读规则链；不是由观测识别的心理因果关系。
+        "触发情境（作者设计设定）：" + (cause if cause else "未指定，不自行编造情境") + "；此文本只作设定，不据此自动识别人或推断真实情绪。",
+        f"设计规则链：作者设定的触发情境 → 作者选择的{label}表情／{strength} → 原文允许的眉、眼、颊、嘴可见变化；属于可撤销绘画规则，不是因果效应估计。",
+        f"表情目标：在原文允许范围内呈现{label}，采用{strength}；与原文任何否定、既有表情或部位要求冲突时，保留原文并省略冲突建议。",
+        "身份保持：只调整原有面部肌肉的可见状态，不改变人物身份、脸型、五官比例、年龄、族裔、肤色、发型或原有构图；遮挡与不可见部位不强行展示。",
+    ]
+    # 部位已有限制就不输出可能冲突的动作；复杂约束下仅说明条件性保留。
+    for (part, pattern), detail in zip(_EXPRESSION_PARTS, _EXPRESSION_FEATURES[expression]):  # 固定四项对应关系，不扩大特征范围。
+        if preserve or re.search(pattern, prompt, re.I):
+            rules.append(f"{part}：保留原文的形态、开闭、动作与可见性要求；仅在原文明确允许时体现所选表情，不另加具体部位动作。")
+        else:
+            rules.append(f"{part}：仅在原文允许且部位可见时，按{strength}调整肌肉幅度；可见变化建议为{detail}，不改变原有结构。")
+    if expression == "neutral":
+        rules.append("中性强度只控制放松程度与细节清晰度，不额外增加笑、哭、怒等目标。")
+    return {"expression": expression, "intensity": intensity, "cause": cause, "rules": rules}
 
 
 # 用有限词法覆盖判断是否安全补齐；任何未知余文都会关闭全部外观及呈现随机补充。
@@ -143,10 +216,12 @@ def _dependencies(prompt: str, state: dict[str, str]) -> list[str]:
 
 
 # 枚举最多 648 个设计状态；未知文本采用 24 组有条件的制作侧重。
-def candidate_prompts(prompt: str) -> list[dict]:
+def candidate_prompts(prompt: str, *, expression: str | None = None, intensity: str = "medium", cause: str = "") -> list[dict]:
     validate_prompt(prompt)
+    validate_expression(expression, intensity, cause)  # 所有选项先验证，错误不进入候选生成或账本。
+    expression_plan = _expression_plan(prompt, expression, intensity, cause)  # 缺省为 None，旧文本组合保持原样。
     locked = {name for name, pattern in _DOMAINS.items() if re.search(pattern, prompt, re.I)}  # 涉及属性即锁定，包括否定、未知修饰和显式值。
-    understood = _understood(prompt)  # 只解析一次覆盖程度，未知语义不参与方向推导。
+    understood = _understood(prompt) and expression_plan is None  # 显式表情只改变肌肉状态，不随机补充身份外观或替换所选表情。
     options = [("face", ("",))]  # 第一维存储面部几何组合，不直接增添独立角色。
     if understood:
         facial = tuple(dict.fromkeys("；".join(value for name, value in design.items() if name not in locked) for design in _FACIAL_DESIGNS))  # 移除锁定属性后合并相同组合。
@@ -159,7 +234,10 @@ def candidate_prompts(prompt: str) -> list[dict]:
         state = {name: value for (name, _), value in zip(options, values) if value}  # 显式原文与补充状态隔离，补充不覆盖原文。
         assumptions = [("未指定属性的绘画设计：" if understood else "可选制作建议：") + value for value in state.values()]  # 未知语义只建议条件允许的制作重点。
         assumptions.extend("条件一致性绘画假设：" + value for value in _dependencies(prompt if understood else "", state))
-        if not understood:
+        if expression_plan is not None:
+            assumptions.insert(0, "已显式选择表情；仅补充有条件的肌肉绘画规则与制作侧重，不随机改变身份外观、表情目标、姿态、光线或背景。")
+            assumptions.extend("表情规则设计：" + rule for rule in expression_plan["rules"])  # 同一规则同时公开于计划、补全说明与最终提示词。
+        elif not understood:
             assumptions.insert(0, "存在否定、有限词法未覆盖或全局限定的描述；不自行添加外观、背景、光线或姿态，只变化原文允许范围内的制作侧重。若原文禁止补充，则忽略全部建议。")
         final = (  # 原文完整保留，包括首尾空格、换行和否定，不用随机编号伪造差异。
             "请生成人脸图像。以下完整用户原文具有最高优先级，包含其中的否定、数量、外观、风格、姿态及构图约束。\n"
@@ -167,16 +245,16 @@ def candidate_prompts(prompt: str) -> list[dict]:
             "【可撤销的绘画设计假设】\n" + ("\n".join(assumptions) if assumptions else "没有增加原文之外的属性。") + "\n"
             "同一画面中的主体、光照与透视应保持一致；设计假设与原文冲突时，一律以原文为准。"
         )
-        results.append({"prompt": final, "assumptions": assumptions, "mode": "rule_based_design"})
+        results.append({"prompt": final, "assumptions": assumptions, "mode": "rule_based_design", "expression_plan": expression_plan})
     SystemRandom().shuffle(results)  # 随机仅改变真实设计状态的尝试顺序，不进入输出文本。
     return results
 
 
 # 默认进行纯内存生成；传入同一个 HistoryLedger 可跨请求保证不重复。
-def generate_prompt(prompt: str, history=None) -> dict:
+def generate_prompt(prompt: str, history=None, *, expression: str | None = None, intensity: str = "medium", cause: str = "") -> dict:
     from .history import HistoryLedger  # 延迟导入使无账本调用不依赖任何已有研究包。
 
-    candidates = candidate_prompts(prompt)  # 先验证并生成有限候选，输入错误不创建持久化目录。
+    candidates = candidate_prompts(prompt, expression=expression, intensity=intensity, cause=cause)  # 先验证全部参数并生成候选，错误不创建持久化目录。
     if history is not None:
         return history.reserve(candidates)
     with HistoryLedger(":memory:") as ledger:  # 纯函数式调用不留下文件；唯一性范围限于显式共享账本。

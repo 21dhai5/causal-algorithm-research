@@ -24,10 +24,10 @@
 
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--page); color: var(--ink); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.65; }
-    button, textarea { font: inherit; }
+    button, textarea, select { font: inherit; }
     button { cursor: pointer; }
     button:disabled { cursor: wait; opacity: .65; }
-    button:focus-visible, summary:focus-visible, textarea:focus-visible { outline: 3px solid #84a989; outline-offset: 4px; }
+    button:focus-visible, summary:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #84a989; outline-offset: 4px; }
     [hidden] { display: none !important; }
     .shell { width: min(1120px, calc(100% - 64px)); margin: 0 auto; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 27px 0; border-bottom: 1px solid var(--line); }
@@ -51,6 +51,16 @@
     textarea:focus { border-color: var(--accent); }
     #prompt-input { min-height: 220px; }
     .field-hint { margin: 10px 0 22px; color: var(--muted); font-size: 12px; }
+    /* 可选表情设置沿用绿色表单风格，并为窄屏保留伸缩空间。 */
+    .expression-settings { min-width: 0; margin: 0 0 24px; padding: 14px 15px 15px; border: 1px solid var(--line); border-radius: 12px; }
+    .expression-settings legend { padding: 0 6px; color: var(--accent); font-size: 13px; }
+    .expression-fields { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; }
+    .expression-settings .field-label { margin-bottom: 6px; }
+    .expression-settings select { width: 100%; min-height: 43px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fafbf8; color: var(--ink); font-size: 13px; }
+    .expression-settings select:disabled, .expression-settings textarea:disabled { cursor: not-allowed; background: #f0f2ed; color: var(--muted); opacity: .75; }
+    .cause-label { margin-top: 13px; }
+    #cause-input { min-height: 76px; padding: 10px 12px; font-size: 13px; }
+    .expression-settings .field-hint { margin-bottom: 0; }
     .submit-row { margin-top: auto; }
     .primary-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 48px; padding: 11px 17px; border: 1px solid var(--accent); border-radius: 9px; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; transition: background .15s; }
     .primary-button:hover:not(:disabled) { background: #1d4836; }
@@ -65,16 +75,19 @@
     .portrait { width: 150px; height: 157px; margin: 0 0 9px; }
     .empty-title { margin: 0; color: #49604e; font-size: 15px; font-weight: 500; }
     .empty-hint { max-width: 280px; margin: 7px 0 24px; color: var(--muted); font-size: 12px; }
-    #prompt-output { min-height: 270px; background: transparent; }
-    .result-content { flex: 1; }
+    #prompt-output { flex: 1; min-height: 270px; background: transparent; }
+    .result-content { display: flex; flex: 1; flex-direction: column; }
     .result-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
     .copy-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 7px 13px; border: 1px solid #cdd8c8; border-radius: 8px; background: #fff; color: var(--accent); font-size: 12px; }
     .copy-button:hover:not(:disabled) { background: #edf2e8; }
     .copy-status { flex: 1; min-width: 0; margin: 0; color: var(--muted); font-size: 12px; }
     .assumptions { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
     summary { width: fit-content; cursor: pointer; color: var(--accent); }
-    .assumptions ul { margin: 10px 0 0; padding-left: 20px; }
+    .assumptions ul, .assumptions ol { margin: 10px 0 0; padding-left: 20px; }
     .assumptions li + li { margin-top: 5px; }
+    /* 长情境与规则按文本换行，避免返回内容撑开结果卡片。 */
+    .expression-plan { overflow-wrap: anywhere; }
+    .expression-plan p { margin: 10px 0 0; }
     .status { min-height: 26px; margin: 16px 3px 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
     .status[data-state="error"], .copy-status[data-state="error"] { color: var(--error); }
     .bottom-note { display: flex; align-items: flex-start; gap: 9px; margin: 16px 2px 0; padding: 17px 0 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
@@ -126,6 +139,36 @@
           <label class="field-label" for="prompt-input">想要一张怎样的脸？</label>
           <textarea id="prompt-input" name="prompt" required aria-describedby="input-hint" placeholder="例如：一位30岁左右的女性，棕色短发、雀斑，正面半身肖像，柔和自然光，写实风格。"></textarea>
           <p class="field-hint" id="input-hint">只需填写这一项。写得越明确，保留的要求越具体。</p>
+          <!-- 表情为空时沿用描述；强度和情境只用于显式选择的表情设计。 -->
+          <fieldset class="expression-settings" aria-describedby="expression-hint">
+            <legend>表情设计（可选）</legend>
+            <div class="expression-fields">
+              <div>
+                <label class="field-label" for="expression-input">表情</label>
+                <select id="expression-input" name="expression">
+                  <option value="">沿用描述</option>
+                  <option value="neutral">平静</option>
+                  <option value="joy">喜悦</option>
+                  <option value="sadness">悲伤</option>
+                  <option value="anger">愤怒</option>
+                  <option value="surprise">惊讶</option>
+                  <option value="fear">恐惧</option>
+                  <option value="disgust">厌恶</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="intensity-input">强度</label>
+                <select id="intensity-input" name="intensity" disabled>
+                  <option value="low">轻微</option>
+                  <option value="medium" selected>中等</option>
+                  <option value="high">强烈</option>
+                </select>
+              </div>
+            </div>
+            <label class="field-label cause-label" for="cause-input">触发情境（可选，最多 500 字）</label>
+            <textarea id="cause-input" name="cause" rows="2" maxlength="500" disabled aria-describedby="expression-hint" placeholder="例如：重逢久别的朋友。"></textarea>
+            <p class="field-hint" id="expression-hint">选择表情后可设置强度与情境。情境是你指定的设计设定，不用于判断真人情绪。</p>
+          </fieldset>
           <div class="submit-row">
             <button class="primary-button" id="generate-button" type="submit" aria-busy="false">
               <span class="spinner" aria-hidden="true"></span>
@@ -158,12 +201,19 @@
             <label class="sr-only" for="prompt-output">生成的人脸图像提示词</label>
             <textarea id="prompt-output" readonly spellcheck="false"></textarea>
             <div class="result-actions">
-              <button class="copy-button" id="copy-button" type="button">
+              <button class="copy-button" id="copy-button" type="button" disabled>
                 <svg class="button-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.3"/></svg>
                 <span id="copy-label">复制提示词</span>
               </button>
               <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
             </div>
+            <!-- 规则链和情境始终通过文本节点展示，不解释服务返回的 HTML。 -->
+            <details class="assumptions expression-plan" id="expression-plan" hidden>
+              <summary>查看本次表情规则链</summary>
+              <p id="expression-summary"></p>
+              <p id="expression-cause" hidden></p>
+              <ol id="expression-rules"></ol>
+            </details>
             <details class="assumptions" id="assumptions" hidden>
               <summary>查看本次补全说明</summary>
               <ul id="assumption-list"></ul>
@@ -175,7 +225,7 @@
       <p class="status" id="generation-status" role="status" aria-live="polite">准备好了。输入描述，生成你的第一版提示词。</p>
       <div class="bottom-note">
         <svg class="note-icon" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor"/><path d="M9 8v5m0-8v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        <p>按有限规则补全设计，并非学习得到的因果推断。保留本地历史时避免完整提示词重复；清空历史会失去跨次去重，组合用尽时需调整描述。这里生成文字提示词，不生成图片，也不保证图像中的人脸身份不同。</p>
+        <p>按有限规则补全设计，并非学习得到的因果推断；表情规则链呈现设计设定与面部细节的联系，不判断真人情绪。保留本地历史时避免完整提示词重复；清空历史会失去跨次去重，组合用尽时需调整描述。这里生成文字提示词，不生成图片，也不保证图像中的人脸身份不同。</p>
       </div>
     </main>
     <footer class="footer"><span>只需描述 · 补全细节 · 复制使用</span><span>无需 API 密钥 · 无外部服务请求</span></footer>
@@ -188,6 +238,12 @@
     const promptForm = document.getElementById("prompt-form");
     // 用户的原始描述，生成期间只读，避免结果和输入错位。
     const promptInput = document.getElementById("prompt-input");
+    // 空值表示沿用原描述，其他值为明确指定的表情类别。
+    const expressionInput = document.getElementById("expression-input");
+    // 仅在选择表情后启用，默认使用中等强度。
+    const intensityInput = document.getElementById("intensity-input");
+    // 用户指定的设计情境，最多接受 500 字。
+    const causeInput = document.getElementById("cause-input");
     // 提交按钮，用于阻止重复请求并显示等待状态。
     const generateButton = document.getElementById("generate-button");
     // 根据首次生成、重新生成和等待状态更新的按钮文案。
@@ -214,10 +270,78 @@
     const assumptions = document.getElementById("assumptions");
     // 逐条以纯文本显示服务返回的补全说明。
     const assumptionList = document.getElementById("assumption-list");
-    // 上次成功生成所用的描述，用于判断输入是否已被修改。
-    let generatedInput = "";
+    // 有显式表情计划时才显示的规则说明区域。
+    const expressionPlan = document.getElementById("expression-plan");
+    // 展示本次表情类别与强度的中文名称。
+    const expressionSummary = document.getElementById("expression-summary");
+    // 以纯文本标明用户指定的情境，空情境时隐藏。
+    const expressionCause = document.getElementById("expression-cause");
+    // 逐条显示服务返回的表情设计规则。
+    const expressionRules = document.getElementById("expression-rules");
+    // 同时用于校验服务枚举和显示中文表情名称。
+    const expressionNames = {
+      neutral: "平静", // 面部平静的设计类别。
+      joy: "喜悦", // 面部喜悦的设计类别。
+      sadness: "悲伤", // 面部悲伤的设计类别。
+      anger: "愤怒", // 面部愤怒的设计类别。
+      surprise: "惊讶", // 面部惊讶的设计类别。
+      fear: "恐惧", // 面部恐惧的设计类别。
+      disgust: "厌恶" // 面部厌恶的设计类别。
+    };
+    // 同时用于校验服务枚举和显示中文强度名称。
+    const intensityNames = {
+      low: "轻微", // 低强度的表情设计。
+      medium: "中等", // 默认的中等强度。
+      high: "强烈" // 高强度的表情设计。
+    };
+    // 上次成功请求的全部原始表单值，包含暂时禁用的设置。
+    let generatedSnapshot = "";
+    // 最近一次观察到的表单值，避免 input/change 重复计算同一变化。
+    let observedSnapshot = readFormSnapshot();
+    // 表单变化次数，防止生成期间修改后还原被误认为同一次输入。
+    let formRevision = 0;
+    // 只有成功生成且此后未改动设置的结果才能复制。
+    let isResultCurrent = false;
     // 当前是否正在生成，同时阻止快捷键和按钮的重入。
     let isGenerating = false;
+    // 记录当前版本是否正在异步复制，防止重复点击。
+    let isCopying = false;
+    // 使旧复制回调失效，防止覆盖新结果或重新启用旧结果复制。
+    let copyRevision = 0;
+
+    // 保留全部原始值；即使只是空白变化或禁用字段变化也能识别。
+    function readFormSnapshot() {
+      return JSON.stringify({
+        prompt: promptInput.value, // 保留描述的空白变化。
+        expression: expressionInput.value, // 区分沿用描述和指定表情。
+        intensity: intensityInput.value, // 跟踪暂时禁用时保留的强度。
+        cause: causeInput.value // 跟踪暂时禁用时保留的情境。
+      });
+    }
+
+    // 统一复制入口条件，等待、旧版本或未生成时均不可复制。
+    function syncCopyAvailability() {
+      copyButton.disabled = isGenerating || isCopying || !isResultCurrent || generatedSnapshot !== readFormSnapshot();
+    }
+
+    // 切换表情或生成状态时同步可选字段，禁用字段不参与浏览器校验。
+    function syncExpressionControls() {
+      expressionInput.disabled = isGenerating;
+      intensityInput.disabled = isGenerating || !expressionInput.value;
+      causeInput.disabled = isGenerating || !expressionInput.value;
+    }
+
+    // 输入变化或开始新请求后保留旧文本，但清除其当前版本和复制资格。
+    function invalidateResult() {
+      isResultCurrent = false;
+      copyRevision += 1;
+      isCopying = false;
+      copyLabel.textContent = "复制提示词";
+      copyStatus.textContent = "";
+      copyStatus.dataset.state = "ready";
+      if (promptOutput.value) resultBadge.textContent = "上一版";
+      syncCopyAvailability();
+    }
 
     // 同步生成状态、控件可用性及读屏标记；退出等待后始终允许重试。
     function setGenerating(active) {
@@ -227,7 +351,9 @@
       generateButton.setAttribute("aria-busy", String(active));
       resultCard.setAttribute("aria-busy", String(active));
       generateLabel.textContent = active ? "正在补全细节…" :
-        (generatedInput && generatedInput === promptInput.value.trim() ? "再生成一版" : "生成完整提示词");
+        (isResultCurrent && generatedSnapshot === readFormSnapshot() ? "再生成一版" : "生成完整提示词");
+      syncExpressionControls();
+      syncCopyAvailability();
     }
 
     // 显示生成结果或错误；状态文字与颜色同步，失败后保留已有结果。
@@ -241,7 +367,7 @@
       promptOutput.value = result.prompt;
       emptyState.hidden = true;
       resultContent.hidden = false;
-      resultBadge.textContent = "已生成";
+      resultBadge.textContent = isResultCurrent ? "已生成" : "上一版";
       copyLabel.textContent = "复制提示词";
       copyStatus.textContent = "";
       copyStatus.dataset.state = "ready";
@@ -255,6 +381,36 @@
       }
       assumptions.hidden = result.assumptions.length === 0;
       assumptions.open = false;
+      // 空计划收起旧规则，防止沿用描述时继续显示上一版的表情设定。
+      expressionRules.replaceChildren();
+      expressionPlan.hidden = result.expression_plan === null;
+      expressionPlan.open = false;
+      expressionSummary.textContent = "";
+      expressionCause.textContent = "";
+      expressionCause.hidden = true;
+      if (result.expression_plan !== null) {
+        // 已校验的计划只以中文枚举及文本节点呈现。
+        const plan = result.expression_plan;
+        expressionSummary.textContent = `设计表情：${expressionNames[plan.expression]} · ${intensityNames[plan.intensity]}`;
+        expressionCause.textContent = plan.cause ? `指定情境（设计设定）：${plan.cause}` : "";
+        expressionCause.hidden = !plan.cause;
+        // 每条规则均创建独立文本节点，服务返回的标签不会被解析。
+        for (const rule of plan.rules) { // 本条规则描述设计设定与面部细节的联系。
+          // 当前规则对应的有序列表项，由结果区域持有。
+          const item = document.createElement("li");
+          item.textContent = rule;
+          expressionRules.append(item);
+        }
+      }
+    }
+
+    // 只接受约定的表情计划结构；缺失或异常字段不会替换旧结果。
+    function isValidExpressionPlan(plan) {
+      return plan === null || (typeof plan === "object" && plan !== null &&
+        typeof plan.expression === "string" && typeof plan.intensity === "string" &&
+        Object.hasOwn(expressionNames, plan.expression) && Object.hasOwn(intensityNames, plan.intensity) &&
+        typeof plan.cause === "string" && Array.isArray(plan.rules) &&
+        plan.rules.every((rule) => typeof rule === "string"));
     }
 
     // 请求本机补全服务；event 是表单提交事件，所有错误均转成可重试状态。
@@ -268,7 +424,23 @@
         promptInput.focus();
         return;
       }
-
+      // 只在显式选择表情时发送强度与情境，保留原描述模式的单字段契约。
+      const requestBody = { prompt: submittedPrompt }; // 所有请求都包含规范化的描述。
+      if (expressionInput.value) {
+        if (causeInput.value.length > 500) {
+          showStatus("触发情境最多填写 500 字，请缩短后重试。", "error");
+          causeInput.focus();
+          return;
+        }
+        requestBody.expression = expressionInput.value;
+        requestBody.intensity = intensityInput.value;
+        requestBody.cause = causeInput.value.trim();
+      }
+      // 请求快照使用原始表单值，不能只比较发送前裁剪后的描述。
+      const submittedSnapshot = readFormSnapshot();
+      // 固定请求发起时的编辑版本，识别等待期间的修改后还原。
+      const submittedRevision = formRevision;
+      invalidateResult();
       setGenerating(true);
       showStatus("正在保留明确要求，并补全未指定的细节…", "loading");
       // 中断长时间无响应的请求，使按钮能够恢复并接受重试。
@@ -280,7 +452,7 @@
         const response = await fetch("/api/generate", {
           method: "POST", // 补全请求通过 JSON 请求体发送。
           headers: { "Content-Type": "application/json" }, // 与本机服务约定的输入格式。
-          body: JSON.stringify({ prompt: submittedPrompt }), // 本次只提交唯一的描述输入。
+          body: JSON.stringify(requestBody), // 无显式表情时不发送强度或情境。
           signal: controller.signal, // 页面超时后释放网络等待。
           cache: "no-store" // 每次点击都请求新的补全结果。
         });
@@ -294,12 +466,16 @@
         // 校验契约后才替换旧结果，异常响应不会清空用户已得到的文本。
         if (typeof result?.prompt !== "string" || !result.prompt.trim() ||
             !Array.isArray(result.assumptions) || result.assumptions.some((item) => typeof item !== "string") ||
-            typeof result.variation_id !== "string" || result.mode !== "rule_based_design") {
+            typeof result.variation_id !== "string" || result.mode !== "rule_based_design" ||
+            !isValidExpressionPlan(result.expression_plan)) {
           throw new Error("服务返回的结果不完整，请重试或重新启动本地工具。");
         }
-        generatedInput = submittedPrompt;
+        // 成功结果仅在全部输入仍对应本次请求时取得复制资格。
+        generatedSnapshot = submittedSnapshot;
+        isResultCurrent = submittedSnapshot === readFormSnapshot() && submittedRevision === formRevision;
         renderResult(result);
-        showStatus("已生成完整提示词。可以复制使用，或再生成一版探索其他细节。", "success");
+        showStatus(isResultCurrent ? "已生成完整提示词。可以复制使用，或再生成一版探索其他细节。" :
+          "设置已改变，当前显示上一版结果。请重新生成后复制。", isResultCurrent ? "success" : "ready");
       } catch (error) { // 异常可能来自网络、请求超时或已转为中文的接口错误。
         if (error.name === "AbortError") {
           showStatus("等待时间较长，请稍后重试。若持续无响应，请重新启动本地工具。", "error");
@@ -329,37 +505,56 @@
 
     // 优先使用现代剪贴板接口，失败后降级；只有实际复制成功才显示成功文案。
     async function copyPrompt() {
+      syncCopyAvailability();
       if (!promptOutput.value || copyButton.disabled) return;
-      copyButton.disabled = true;
+      // 固定待复制的当前结果，后续响应不能改变本次剪贴板内容。
+      const copiedText = promptOutput.value;
+      // 当前复制操作的版本；输入改变或生成新结果会使其失效。
+      const operationRevision = ++copyRevision;
+      isCopying = true;
+      syncCopyAvailability();
       // 独立记录本次复制是否成功，避免浏览器拒绝时误报。
       let copied = false;
       try {
         if (navigator.clipboard && window.isSecureContext) {
           try {
-            await navigator.clipboard.writeText(promptOutput.value);
+            await navigator.clipboard.writeText(copiedText);
             copied = true;
           } catch {
+            // 旧复制被拒绝后不得选中新结果或再触发兼容复制。
+            if (operationRevision !== copyRevision || !isResultCurrent || isGenerating || generatedSnapshot !== readFormSnapshot()) return;
             copied = copyWithSelection();
           }
         } else {
           copied = copyWithSelection();
         }
+        // 异步完成只更新仍属于当前表单与当前结果的状态。
+        if (operationRevision !== copyRevision || !isResultCurrent || isGenerating || generatedSnapshot !== readFormSnapshot()) return;
         copyLabel.textContent = copied ? "已复制" : "重新复制";
         copyStatus.textContent = copied ? "提示词已复制，可以粘贴使用。" : "浏览器未允许复制。已选中文本，请按 Ctrl / ⌘ + C。";
         copyStatus.dataset.state = copied ? "success" : "error";
       } finally {
-        copyButton.disabled = false;
+        // 旧回调不能解除新复制操作或旧结果的禁用状态。
+        if (operationRevision === copyRevision) {
+          isCopying = false;
+          syncCopyAvailability();
+        }
       }
     }
 
     // 输入修改后将旧结果标为上一版，避免把旧提示词误认为对应新要求。
     function updateInputState() {
+      syncExpressionControls();
+      // 四项输入整体比较；改回原值也不恢复旧结果的复制资格。
+      const currentSnapshot = readFormSnapshot();
+      if (currentSnapshot === observedSnapshot) return;
+      observedSnapshot = currentSnapshot;
+      formRevision += 1;
+      invalidateResult();
       if (isGenerating) return;
-      generateLabel.textContent = generatedInput && generatedInput === promptInput.value.trim() ? "再生成一版" : "生成完整提示词";
-      if (generatedInput) {
-        resultBadge.textContent = generatedInput === promptInput.value.trim() ? "已生成" : "上一版";
-      }
-      showStatus("准备好了。点击生成，补全当前描述。");
+      generateLabel.textContent = "生成完整提示词";
+      showStatus(promptOutput.value ? "设置已改变，当前显示上一版结果。请重新生成后复制。" :
+        "准备好了。点击生成，补全当前描述。");
     }
 
     // 快捷键通过原表单提交，沿用必填检查和防重复请求逻辑。
@@ -372,8 +567,9 @@
 
     // 事件只绑定一次，页面无需外部脚本或运行时依赖。
     promptForm.addEventListener("submit", generatePrompt);
-    promptInput.addEventListener("input", updateInputState);
-    promptInput.addEventListener("keydown", handleShortcut);
+    promptForm.addEventListener("input", updateInputState);
+    promptForm.addEventListener("change", updateInputState);
+    promptForm.addEventListener("keydown", handleShortcut);
     copyButton.addEventListener("click", copyPrompt);
   </script>
 </body>
