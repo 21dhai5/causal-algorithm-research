@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="固定人物身份与解剖方向，以显式因果设计规则生成一致的全身多视图提示词。">
+  <title>人物多视图 · 因果提示词工坊</title>
+  <style>
+    :root {
+      --page: #f5f3ed; /* 温暖的工作区底色。 */
+      --paper: #fffefa; /* 编辑卡片与结果面板的底色。 */
+      --ink: #243b3a; /* 标题和正文的深墨色。 */
+      --muted: #697775; /* 浅底上的辅助说明文字。 */
+      --teal: #28645f; /* 主要操作和选中状态。 */
+      --teal-soft: #e8f0eb; /* 选中选项和可见特征的底色。 */
+      --orange: #a65d35; /* 特征标记与待更新状态。 */
+      --orange-soft: #faf0e5; /* 提醒区域的柔和底色。 */
+      --line: #dce1d9; /* 卡片、表单和列表的边界。 */
+      --error: #a13d38; /* 生成失败和校验错误的文字。 */
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    button, a, input, textarea, select, summary { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid #75a89d; outline-offset: 4px; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 1px; }
+    a { color: inherit; text-underline-offset: 4px; }
+    svg { flex-shrink: 0; }
+    .shell { width: min(1336px, calc(100% - 80px)); margin: 0 auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 89px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; gap: 12px; align-items: center; font-size: 16px; font-weight: 650; letter-spacing: .08em; }
+    .brand-mark { width: 34px; height: 34px; color: var(--teal); }
+    .topbar-right { display: flex; gap: 27px; align-items: center; color: var(--muted); font-size: 12px; }
+    .topbar-right a { text-decoration: none; }
+    .local-badge { display: inline-flex; align-items: center; gap: 7px; }
+    .local-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px #28645f0b; }
+    .hero { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 36px; padding: 43px 0 32px; }
+    .eyebrow { margin: 0 0 13px; color: var(--teal); font-size: 10px; font-weight: 650; letter-spacing: .19em; }
+    h1 { margin: 0; font-size: clamp(32px, 3.5vw, 49px); line-height: 1.35; letter-spacing: -.045em; font-weight: 650; }
+    h1 span { color: var(--teal); }
+    .intro { margin: 15px 0 0; max-width: 660px; color: var(--muted); font-size: 13px; line-height: 1.9; }
+    .hero-art { display: flex; align-items: center; gap: 21px; padding-right: 14px; }
+    .orbit { width: 170px; height: 157px; }
+    .orbit-label { margin: 0; padding-left: 16px; border-left: 1px solid #c9d4cb; font-size: 12px; color: var(--muted); line-height: 2; }
+    .orbit-label strong { display: block; color: var(--ink); font-weight: 550; }
+    .principle-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; margin-bottom: 27px; padding: 13px 17px; border: 1px solid var(--line); border-radius: 9px; background: #eeeee6; font-size: 11px; }
+    .principle-strip strong { margin-right: 6px; font-weight: 600; color: var(--teal); }
+    .chain-arrow { color: #89968d; }
+    .principle-note { margin-left: auto; color: var(--muted); }
+    .workspace { display: grid; grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr); gap: 24px; align-items: start; }
+    .card { min-width: 0; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); box-shadow: 0 5px 25px #263b3003; }
+    .editor { overflow: hidden; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 23px 25px; border-bottom: 1px solid var(--line); }
+    h2, h3, h4, p { overflow-wrap: anywhere; }
+    .card-title { margin: 0; font-size: 17px; font-weight: 650; }
+    .section-index { display: inline-block; margin-right: 9px; font-size: 10px; font-weight: 500; letter-spacing: .07em; color: #8c9a91; vertical-align: 2px; }
+    .text-button { padding: 4px 0; border: 0; background: transparent; color: var(--teal); font-size: 12px; }
+    .text-button:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 4px; }
+    fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .form-section { margin: 0 25px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+    .section-heading h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .section-heading small { color: var(--muted); font-size: 10px; }
+    .field-header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 8px; }
+    .field-label { font-size: 12px; font-weight: 550; }
+    .count { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    textarea, input[type="text"], select { width: 100%; min-width: 0; border: 1px solid #d6ddd5; border-radius: 7px; color: var(--ink); background: #fafbf7; font-size: 12px; }
+    textarea { display: block; resize: vertical; padding: 12px 13px; line-height: 1.85; }
+    input[type="text"], select { min-height: 38px; padding: 7px 9px; }
+    textarea::placeholder, input::placeholder { color: #849087; opacity: 1; }
+    textarea:focus, input[type="text"]:focus, select:focus { border-color: var(--teal); }
+    #description { min-height: 150px; }
+    #style { min-height: 79px; }
+    .field-help { margin: 8px 0 16px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+    .field-help:last-child { margin-bottom: 0; }
+    .landmark-header { display: grid; grid-template-columns: minmax(0, 1fr) 115px 29px; gap: 7px; margin-bottom: 6px; color: var(--muted); font-size: 10px; }
+    .landmark-row { display: grid; grid-template-columns: minmax(0, 1fr) 115px 29px; gap: 7px; align-items: center; margin-top: 8px; }
+    .remove-button { display: grid; place-items: center; width: 29px; height: 34px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #7e8a80; font-size: 21px; line-height: 1; }
+    .remove-button:hover { color: var(--error); background: #f9ece6; }
+    .add-button { display: flex; justify-content: center; align-items: center; gap: 7px; width: 100%; min-height: 34px; margin-top: 12px; border: 1px dashed #bdcdc1; border-radius: 7px; color: var(--teal); background: transparent; font-size: 11px; }
+    .add-button:hover:not(:disabled) { background: var(--teal-soft); }
+    .landmark-note { margin: 11px 0 0; color: var(--muted); font-size: 10px; line-height: 1.8; }
+    .preset-control { display: flex; padding: 3px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 7px; background: #f4f5ef; }
+    .preset-button { flex: 1; min-height: 31px; padding: 4px 8px; border: 0; border-radius: 4px; color: var(--muted); background: transparent; font-size: 11px; }
+    .preset-button[aria-pressed="true"] { background: var(--paper); color: var(--teal); box-shadow: 0 1px 4px #243b3a12; font-weight: 600; }
+    .view-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+    .view-option { position: relative; min-width: 0; }
+    .view-option input { position: absolute; top: 9px; right: 7px; width: 11px; height: 11px; margin: 0; accent-color: var(--teal); z-index: 1; }
+    .view-option label { display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 78px; padding: 12px 3px 8px; border: 1px solid var(--line); border-radius: 7px; background: #fafbf7; color: var(--muted); font-size: 10px; cursor: pointer; }
+    .view-option input:checked + label { border-color: #7fa497; background: var(--teal-soft); color: var(--teal); }
+    .view-option input:focus-visible + label { outline: 3px solid #75a89d; outline-offset: 3px; }
+    .view-option svg { width: 24px; height: 25px; }
+    .direction-note { display: flex; gap: 8px; margin: 12px 0 0; color: var(--muted); font-size: 10px; }
+    .direction-note svg { width: 14px; height: 14px; margin-top: 2px; }
+    .submit-area { padding: 21px 25px 18px; }
+    .primary-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 47px; padding: 10px 17px; border: 1px solid var(--teal); border-radius: 8px; color: #fff; background: var(--teal); font-size: 13px; font-weight: 550; transition: background .15s; }
+    .primary-button:hover:not(:disabled) { background: #1c514c; }
+    .primary-button svg { width: 17px; height: 17px; }
+    .spinner { display: none; width: 15px; height: 15px; border: 2px solid #ffffff50; border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
+    .primary-button[aria-busy="true"] .spinner { display: inline-block; }
+    .primary-button[aria-busy="true"] svg { display: none; }
+    .submit-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--muted); font-size: 10px; }
+    .submit-meta button { font-size: 10px; }
+    .defaults-status { padding: 12px 25px; border-bottom: 1px solid var(--line); background: var(--orange-soft); color: var(--orange); font-size: 12px; }
+    .defaults-status p { display: inline; margin: 0; }
+    .defaults-status button { margin-left: 10px; }
+    .result-card { min-height: 715px; }
+    .result-card .card-top { padding-bottom: 22px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 20px; background: #f0f1e9; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .status-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .status-badge[data-state="success"] { color: var(--teal); background: var(--teal-soft); }
+    .status-badge[data-state="stale"] { color: var(--orange); background: var(--orange-soft); }
+    .status-badge[data-state="error"] { color: var(--error); background: #f8eae5; }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 590px; padding: 40px 35px 54px; text-align: center; }
+    .empty-art { width: 215px; height: 202px; margin-bottom: 19px; }
+    .empty-state h3 { margin: 0; font-size: 23px; font-weight: 500; line-height: 1.6; letter-spacing: -.035em; }
+    .empty-state p { max-width: 310px; margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.9; }
+    .empty-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 26px; }
+    .empty-chips span { padding: 4px 9px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: 10px; }
+    .result-content { padding: 21px 25px 25px; }
+    .identity-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .identity-label { margin: 0 0 3px; color: var(--muted); font-size: 10px; }
+    .identity-value { display: block; max-width: 100%; color: var(--teal); font-size: 11px; overflow-wrap: anywhere; }
+    .view-count { font-size: 11px; color: var(--muted); }
+    .result-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .small-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 33px; padding: 6px 11px; border: 1px solid #cbd7cb; border-radius: 6px; color: var(--teal); background: transparent; font-size: 11px; }
+    .small-button:hover:not(:disabled) { background: var(--teal-soft); }
+    .small-button.emphasis { border-color: var(--teal); color: #fff; background: var(--teal); }
+    .small-button.emphasis:hover:not(:disabled) { background: #1c514c; }
+    .small-button svg { width: 13px; height: 13px; }
+    .stale-notice { margin: 0 0 16px; padding: 10px 12px; border-left: 2px solid #c18355; border-radius: 0 5px 5px 0; background: var(--orange-soft); color: var(--orange); font-size: 11px; line-height: 1.8; }
+    .tablist { display: flex; gap: 22px; margin-bottom: 17px; border-bottom: 1px solid var(--line); }
+    .tab { margin-bottom: -1px; padding: 9px 0 10px; border: 0; border-bottom: 2px solid transparent; color: var(--muted); background: transparent; font-size: 12px; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--teal); color: var(--teal); font-weight: 600; }
+    .output-caption { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--muted); font-size: 10px; }
+    .prompt-output { min-height: 410px; max-height: 700px; background: #f5f7f0; border-color: #dfe5db; font-size: 11px; line-height: 1.95; }
+    .direction-callout { margin: 14px 0; padding: 11px 12px; border-radius: 6px; background: #f0f3ea; font-size: 11px; line-height: 1.85; color: var(--muted); }
+    .direction-callout strong { color: var(--ink); font-weight: 550; }
+    .view-result { margin-bottom: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 8px; }
+    .view-result-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+    .view-result h3 { display: inline; margin: 0; font-size: 13px; font-weight: 600; }
+    .azimuth { margin-left: 7px; font-size: 10px; color: var(--muted); }
+    .feature-group { display: flex; gap: 8px; align-items: baseline; margin-top: 7px; font-size: 10px; }
+    .feature-group-title { flex-shrink: 0; width: 32px; color: var(--muted); }
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+    .feature-tag { padding: 2px 6px; border-radius: 4px; background: #eff2eb; color: #657467; overflow-wrap: anywhere; }
+    .feature-tag.visible { background: var(--teal-soft); color: var(--teal); }
+    .feature-tag.grazing { background: var(--orange-soft); color: var(--orange); }
+    .feature-none { color: #849087; }
+    .view-details { margin-top: 12px; font-size: 11px; }
+    summary { width: fit-content; color: var(--teal); cursor: pointer; }
+    .view-details textarea { min-height: 190px; margin-top: 10px; font-size: 11px; }
+    .causal-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #f5f7ef; font-size: 11px; }
+    .causal-chain strong { font-weight: 550; color: var(--teal); }
+    .rules-title { margin: 21px 0 8px; font-size: 12px; font-weight: 600; }
+    .text-list { margin: 0; padding-left: 18px; color: var(--muted); font-size: 11px; line-height: 1.9; }
+    .text-list li + li { margin-top: 8px; }
+    .edge-list { display: grid; gap: 7px; margin-top: 11px; }
+    .edge-row { padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; font-size: 10px; color: var(--muted); }
+    .edge-row strong { font-weight: 500; color: var(--ink); }
+    .edge-row small { display: block; margin-top: 2px; font-size: 10px; }
+    .negative-panel { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; }
+    .negative-panel textarea { min-height: 100px; margin: 12px 0 9px; font-size: 11px; }
+    .warnings { margin-top: 17px; padding: 12px 14px; border-radius: 6px; background: var(--orange-soft); }
+    .warnings h3 { margin: 0 0 6px; color: var(--orange); font-size: 11px; font-weight: 600; }
+    .warnings .text-list { color: var(--orange); font-size: 10px; }
+    .manual-copy { margin-bottom: 17px; padding: 12px; border: 1px solid #c18355; border-radius: 7px; background: var(--orange-soft); }
+    .manual-copy label { font-size: 11px; color: var(--orange); }
+    .manual-copy textarea { min-height: 110px; margin-top: 8px; }
+    .copy-status { min-height: 18px; margin: 12px 0 0; color: var(--teal); font-size: 11px; }
+    .copy-status[data-state="error"] { color: var(--error); }
+    .generation-status { min-height: 22px; margin: 13px 3px 21px; color: var(--muted); font-size: 11px; }
+    .generation-status[data-state="error"] { color: var(--error); }
+    .generation-status[data-state="success"] { color: var(--teal); }
+    .method { display: grid; grid-template-columns: .8fr 1.2fr; gap: 45px; margin-top: 29px; padding: 28px 0 25px; border-top: 1px solid var(--line); }
+    .method h2 { margin: 0 0 10px; font-size: 17px; font-weight: 550; }
+    .method p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.95; }
+    .method-points { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .method-points h3 { margin: 2px 0 7px; font-size: 12px; font-weight: 550; }
+    .method-points h3 span { color: var(--orange); margin-right: 7px; font-size: 10px; }
+    .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 19px 0 27px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (min-width: 1500px) { .hero { padding-top: 52px; padding-bottom: 38px; } }
+    @media (max-width: 1100px) {
+      .shell { width: calc(100% - 48px); }
+      .workspace { gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+      .hero-art { gap: 5px; padding-right: 0; }
+      .orbit { width: 140px; }
+      .orbit-label { display: none; }
+      .card-top { padding: 20px; }
+      .form-section { margin: 0 20px; }
+      .submit-area, .result-content { padding-left: 20px; padding-right: 20px; }
+      .landmark-header, .landmark-row { grid-template-columns: minmax(0, 1fr) 98px 25px; gap: 5px; }
+      .principle-note { display: none; }
+      .view-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .view-option label { flex-direction: row; justify-content: center; min-height: 44px; padding: 8px 17px 8px 3px; }
+      .view-option svg { width: 20px; height: 20px; }
+      .view-option input { top: 6px; right: 6px; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: calc(100% - 36px); }
+      .topbar { min-height: 74px; }
+      .topbar-right { gap: 12px; font-size: 10px; }
+      .topbar-right a { display: none; }
+      .brand { font-size: 14px; gap: 9px; }
+      .brand-mark { width: 29px; height: 29px; }
+      .hero { padding: 30px 0 23px; gap: 10px; }
+      h1 { font-size: 33px; }
+      .intro { max-width: 410px; font-size: 12px; }
+      .hero-art { display: none; }
+      .principle-strip { gap: 7px; margin-bottom: 19px; padding: 11px 12px; font-size: 10px; }
+      .principle-strip strong { flex-basis: 100%; margin-bottom: 2px; font-size: 11px; }
+      .workspace { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+      .card { border-radius: 12px; }
+      .card-top { padding: 19px 20px; }
+      .view-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .view-option label { flex-direction: column; min-height: 72px; padding: 10px 3px 7px; }
+      .result-card { min-height: 520px; }
+      .empty-state { min-height: 440px; padding: 26px 24px 35px; }
+      .empty-art { width: 175px; height: 165px; margin-bottom: 13px; }
+      .empty-state h3 { font-size: 21px; }
+      .prompt-output { min-height: 330px; }
+      .method { grid-template-columns: 1fr; gap: 22px; margin-top: 19px; padding-top: 24px; }
+      .method-points { gap: 20px; }
+      .generation-status { margin-bottom: 14px; }
+    }
+    @media (max-width: 370px) {
+      .shell { width: calc(100% - 24px); }
+      h1 { font-size: 29px; }
+      .card-top, .result-content, .submit-area { padding-left: 16px; padding-right: 16px; }
+      .form-section { margin-left: 16px; margin-right: 16px; }
+      .view-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .view-option label { flex-direction: row; min-height: 43px; padding-right: 15px; }
+      .landmark-header, .landmark-row { grid-template-columns: minmax(0, 1fr) 89px 23px; }
+      .tablist { gap: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .spinner { animation: none; }
+      .primary-button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="m18 2 15 8v16l-15 8-15-8V10L18 2Z" stroke="currentColor" stroke-width="1.3"/><path d="m3 10 15 8 15-8M18 18v16M10.5 6 26 14v16" stroke="currentColor" stroke-width="1.1"/><circle cx="18" cy="18" r="3" fill="#f5f3ed" stroke="currentColor" stroke-width="1.3"/></svg>
+        <span>人物多视图</span>
+      </div>
+      <div class="topbar-right"><a href="#method">了解设计规则 ↗</a><span class="local-badge">本机运行 · 无需密钥</span></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">CHARACTER MULTIVIEW / CAUSAL PROMPT STUDIO</p>
+          <h1 id="page-title">一份设定，<span>多个视角。</span></h1>
+          <p class="intro">先定义一个完整人物，再让相机围绕他移动。<br>从正面到背面，让身份、服装和左右特征始终有据可循。</p>
+        </div>
+        <div class="hero-art">
+          <svg class="orbit" viewBox="0 0 180 165" fill="none" role="img" aria-label="相机绕人物移动的几何方向示意，非人物生成图">
+            <ellipse cx="89" cy="82" rx="68" ry="48" stroke="#b9c8bb" stroke-dasharray="3 5"/><ellipse cx="89" cy="82" rx="45" ry="32" stroke="#d5ddd0"/>
+            <path d="M89 20v124M12 82h154" stroke="#d5ddd0" stroke-dasharray="3 4"/>
+            <path d="m89 57 20 13v25l-20 13-20-13V70l20-13Z" fill="#e4ebe0" stroke="#628778"/><path d="m69 70 20 13 20-13M89 83v25" stroke="#628778"/>
+            <path d="m85 61 4-4 4 4" stroke="#a65d35" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="89" cy="34" r="5" fill="#28645f"/><circle cx="157" cy="82" r="4" fill="#f5f3ed" stroke="#7f9b88"/><circle cx="89" cy="130" r="4" fill="#f5f3ed" stroke="#7f9b88"/><circle cx="21" cy="82" r="4" fill="#f5f3ed" stroke="#7f9b88"/>
+            <text x="89" y="16" text-anchor="middle" fill="#28645f" font-size="9">正面</text><text x="89" y="153" text-anchor="middle" fill="#697775" font-size="9">背面</text><text x="9" y="66" fill="#697775" font-size="9">左</text><text x="160" y="66" fill="#697775" font-size="9">右</text>
+          </svg>
+          <p class="orbit-label"><strong>人物固定，相机绕行</strong>解剖方向，不随画面翻转<br>几何示意 · 非生成图像</p>
+        </div>
+      </section>
+
+      <div class="principle-strip" aria-label="因果设计流程">
+        <strong>一致性的来路</strong><span>人物设定</span><span class="chain-arrow" aria-hidden="true">→</span><span>表面特征</span><span class="chain-arrow" aria-hidden="true">＋</span><span>相机视角</span><span class="chain-arrow" aria-hidden="true">→</span><span>可见性约束</span><span class="principle-note">显式规则驱动 · 生成文字提示词</span>
+      </div>
+
+      <div class="workspace">
+        <form class="card editor" id="character-form">
+          <div class="card-top"><h2 class="card-title"><span class="section-index">01 / INPUT</span>定义人物</h2><button class="text-button" id="example-button" type="button" disabled>载入示例 ↺</button></div>
+          <div class="defaults-status" id="defaults-status" role="status" aria-live="polite"><p id="defaults-message">正在读取本机示例与视角选项…</p><button type="button" class="text-button" id="retry-defaults" hidden>重新读取</button></div>
+          <fieldset id="editor-fields" disabled>
+            <legend class="sr-only">人物设定、表面特征和相机视角</legend>
+            <section class="form-section" aria-labelledby="identity-heading">
+              <div class="section-heading"><h3 id="identity-heading">基础设定</h3><small>所有视角共享</small></div>
+              <div class="field-header"><label class="field-label" for="description">全身人物描述</label><span class="count" id="description-count">0 / 6000</span></div>
+              <textarea id="description" name="description" maxlength="6000" required aria-describedby="description-help" placeholder="描述年龄、面貌、发型、体型、全身服装与配色…"></textarea>
+              <p class="field-help" id="description-help">写下每个视角都要保留的身份与造型。原始描述会完整保留。</p>
+              <div class="field-header"><label class="field-label" for="style">画面风格与呈现</label><span class="count" id="style-count">0 / 1000</span></div>
+              <textarea id="style" name="style" maxlength="1000" required aria-describedby="style-help" placeholder="例如：角色设计设定稿、统一光线、纯色背景、全身完整入镜…"></textarea>
+              <p class="field-help" id="style-help">各视图沿用同一风格；这里只生成提示词，不生成图片。</p>
+            </section>
+
+            <section class="form-section" aria-labelledby="landmark-heading">
+              <div class="section-heading"><h3 id="landmark-heading">不对称特征</h3><small id="feature-count">0 / 40 项</small></div>
+              <div class="landmark-header" aria-hidden="true"><span>特征描述</span><span>人物表面</span><span></span></div>
+              <div id="landmark-rows"></div>
+              <button class="add-button" id="add-feature" type="button"><span aria-hidden="true">＋</span> 添加一个特征</button>
+              <p class="landmark-note">把徽章、刺绣或配饰绑定到人物自身的前 / 后 / 左 / 右面。文字描述不会被完整语义解析，需要按表面控制的特征请在这里明确添加。</p>
+            </section>
+
+            <section class="form-section" aria-labelledby="views-heading">
+              <div class="section-heading"><h3 id="views-heading">相机视角</h3><small id="selected-count">已选 0 个</small></div>
+              <div class="preset-control" aria-label="视角预设"><button class="preset-button" type="button" data-preset="standard" aria-pressed="false">标准四视图</button><button class="preset-button" type="button" data-preset="all" aria-pressed="false">完整八视图</button><button class="preset-button" type="button" data-preset="custom" aria-pressed="false">自定义</button></div>
+              <div class="view-options" id="view-options"></div>
+              <p class="direction-note"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor"/><path d="M9 8v5m0-8v.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>左 / 右始终指<strong>人物自身</strong>的解剖方向，不是观看者或画面的左右。至少选择一个视角。</span></p>
+            </section>
+            <div class="submit-area"><button class="primary-button" id="generate-button" type="submit" aria-busy="false"><span class="spinner" aria-hidden="true"></span><span id="generate-label">生成多视图提示词</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="submit-meta"><span>Ctrl / ⌘ + Enter 快速生成</span><button class="text-button" id="reset-button" type="button">重置设定</button></div></div>
+          </fieldset>
+        </form>
+
+        <section class="card result-card" id="result-card" aria-labelledby="result-heading" aria-busy="false">
+          <div class="card-top"><h2 class="card-title" id="result-heading"><span class="section-index">02 / OUTPUT</span>视图提示词</h2><span class="status-badge" id="result-badge" data-state="empty">等待生成</span></div>
+          <div class="empty-state" id="empty-state">
+            <svg class="empty-art" viewBox="0 0 230 215" fill="none" role="img" aria-label="围绕同一个立方体的相机位置示意，非人物生成图">
+              <circle cx="115" cy="106" r="79" stroke="#e0e5d8"/><ellipse cx="115" cy="106" rx="99" ry="48" stroke="#bdcdbb" stroke-dasharray="3 6"/><path d="M115 15v181M12 106h206" stroke="#e0e5d8" stroke-dasharray="3 5"/>
+              <path d="m115 57 36 21v57l-36 21-36-21V78l36-21Z" fill="#eff3e9" stroke="#769783" stroke-width="1.1"/><path d="m79 78 36 21 36-21M115 99v57" stroke="#769783" stroke-width="1.1"/><path d="m115 57 10 6-36 21-10-6 36-21Z" fill="#dbe6d6"/><path d="M89 84v17l8 4V88" stroke="#a97146" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="16" cy="106" r="5" fill="#f5f3ed" stroke="#7d9c86"/><circle cx="214" cy="106" r="5" fill="#f5f3ed" stroke="#7d9c86"/><circle cx="115" cy="58" r="5" fill="#28645f"/><circle cx="115" cy="154" r="5" fill="#f5f3ed" stroke="#7d9c86"/>
+              <rect x="101" y="20" width="28" height="16" rx="4" fill="#e2ebe0" stroke="#648b76"/><path d="m129 25 7-3v12l-7-3" stroke="#648b76" stroke-linejoin="round"/><path d="M115 36v12" stroke="#648b76" stroke-dasharray="2 3"/>
+              <text x="115" y="193" text-anchor="middle" fill="#7a897c" font-size="9" letter-spacing="1">几何示意 · 非人物图像</text>
+            </svg>
+            <h3>让视角变化，<br>让人物保持一致。</h3>
+            <p>填写左侧设定，得到一份共享身份描述、各视角的可见性约束与可直接复制的完整提示词。</p>
+            <div class="empty-chips"><span>统一人物身份</span><span>特征表面绑定</span><span>逐视角提示词</span></div>
+          </div>
+
+          <div class="result-content" id="result-content" hidden>
+            <div class="identity-row"><div><p class="identity-label">本次人物身份 ID</p><code class="identity-value" id="character-id"></code></div><span class="view-count" id="result-view-count"></span></div>
+            <div class="result-actions"><button class="small-button emphasis" type="button" data-copy="full" data-label="复制全部提示词" disabled>复制全部提示词</button><button class="small-button" id="export-button" type="button" disabled>导出 JSON ↗</button></div>
+            <p class="stale-notice" id="stale-notice" hidden>设定已修改，以下为上一版结果。请重新生成后再复制或导出。</p>
+            <div class="manual-copy" id="manual-copy" hidden><label for="manual-copy-output">浏览器未允许自动复制。已选中文本，请按 Ctrl / ⌘ + C。</label><textarea id="manual-copy-output" readonly spellcheck="false"></textarea></div>
+            <div class="tablist" role="tablist" aria-label="提示词与设计规则"><button class="tab" id="tab-full" type="button" role="tab" aria-selected="true" aria-controls="panel-full" tabindex="0">完整提示词</button><button class="tab" id="tab-views" type="button" role="tab" aria-selected="false" aria-controls="panel-views" tabindex="-1">逐视角检查</button><button class="tab" id="tab-rules" type="button" role="tab" aria-selected="false" aria-controls="panel-rules" tabindex="-1">因果设计规则</button></div>
+            <div id="panel-full" role="tabpanel" aria-labelledby="tab-full" tabindex="0"><div class="output-caption"><label for="full-output">共享设定 ＋ 所选视角 ＋ 一致性约束</label><span>纯文本</span></div><textarea class="prompt-output" id="full-output" readonly spellcheck="false"></textarea></div>
+            <div id="panel-views" role="tabpanel" aria-labelledby="tab-views" tabindex="0" hidden><p class="direction-callout"><strong>以人物为坐标：</strong>“左侧特征”始终在人物左侧。隐藏特征不会移到另一侧；掠视特征位于表面交界，应避免完整正面展示。</p><div id="view-results"></div></div>
+            <div id="panel-rules" role="tabpanel" aria-labelledby="tab-rules" tabindex="0" hidden><div class="causal-chain"><strong>固定身份</strong><span>＋</span><strong>特征表面</strong><span>＋</span><strong>相机方位</strong><span class="chain-arrow">→</span><strong>可见性</strong><span class="chain-arrow">→</span><strong>视图提示词</strong></div><h3 class="rules-title">本次一致性约束</h3><ul class="text-list" id="consistency-rules"></ul><h3 class="rules-title">显式因果关系</h3><div class="edge-list" id="causal-edges"></div><p class="direction-callout">这些关系是可检查的设计规则，不是从数据学习的因果推断；它们约束提示词，无法保证外部图像模型的最终执行效果。</p></div>
+            <details class="negative-panel" id="negative-panel"><summary>负面提示词 · 避免身份与方位漂移</summary><label class="sr-only" for="negative-output">本次共享负面提示词</label><textarea id="negative-output" readonly spellcheck="false"></textarea><button class="small-button" type="button" data-copy="negative" data-label="复制负面提示词" disabled>复制负面提示词</button></details>
+            <div class="warnings" id="warnings" hidden><h3>使用提醒</h3><ul class="text-list" id="warning-list"></ul></div>
+            <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+      </div>
+      <p class="generation-status" id="generation-status" role="status" aria-live="polite">正在准备工作区…</p>
+
+      <section class="method" id="method" aria-labelledby="method-heading">
+        <div><p class="eyebrow">THE LOGIC BEHIND THE VIEWS</p><h2 id="method-heading">只改变相机，有规则地改变可见性。</h2><p>同一份人物身份贯穿全部视图。表面绑定明确非对称特征的位置，相机方位决定它们是可见、隐藏，还是仅在边缘掠视。</p></div>
+        <div class="method-points"><div><h3><span>01</span>规则透明，原文保留</h3><p>基于显式因果设计规则生成，非学习式推断。任意描述会保留为共享设定，不会被完整理解或自动拆分为特征。</p></div><div><h3><span>02</span>本地处理，直接带走</h3><p>仅向当前本机服务提交设定，不使用外部服务或浏览器本地存储。复制提示词，或导出 JSON 供后续工作流使用。</p></div></div>
+      </section>
+    </main>
+    <footer class="footer"><span>人物多视图 · 因果提示词工坊</span><span>固定身份 / 明确方向 / 多视角一致性</span></footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    // 页面元素统一保存在本对象中；内容始终通过 value 或 textContent 写入。
+    const ui = {
+      form: document.getElementById("character-form"), // 设定提交表单。
+      fields: document.getElementById("editor-fields"), // 默认配置就绪前禁用的编辑区域。
+      description: document.getElementById("description"), // 所有视角共享的全身描述。
+      style: document.getElementById("style"), // 所有视角共享的画面风格。
+      rows: document.getElementById("landmark-rows"), // 带稳定标识的表面特征列表。
+      options: document.getElementById("view-options"), // 从接口配置生成的相机选项。
+      add: document.getElementById("add-feature"), // 最多允许添加四十个特征。
+      example: document.getElementById("example-button"), // 载入本机接口提供的示例。
+      reset: document.getElementById("reset-button"), // 恢复示例并取消未完成请求。
+      generate: document.getElementById("generate-button"), // 生成入口和等待状态。
+      generateLabel: document.getElementById("generate-label"), // 生成按钮的状态文案。
+      status: document.getElementById("generation-status"), // 生成和校验状态播报。
+      defaultsStatus: document.getElementById("defaults-status"), // 初始配置的读取或错误提示。
+      defaultsMessage: document.getElementById("defaults-message"), // 初始配置状态的纯文本。
+      retry: document.getElementById("retry-defaults"), // 默认配置失败后的重试入口。
+      resultCard: document.getElementById("result-card"), // 对辅助技术标记请求状态。
+      badge: document.getElementById("result-badge"), // 等待、成功和过期状态角标。
+      empty: document.getElementById("empty-state"), // 首次生成前的空状态。
+      result: document.getElementById("result-content"), // 已生成结果的容器。
+      stale: document.getElementById("stale-notice"), // 设定修改后保留旧版的明确提示。
+      full: document.getElementById("full-output"), // 共享完整提示词。
+      negative: document.getElementById("negative-output"), // 共享负面提示词。
+      viewResults: document.getElementById("view-results"), // 逐视角结果与特征可见性。
+      rules: document.getElementById("consistency-rules"), // 本次生成的一致性规则。
+      edges: document.getElementById("causal-edges"), // 本次生成的因果图关系。
+      warnings: document.getElementById("warnings"), // 接口提醒的可隐藏区域。
+      warningList: document.getElementById("warning-list"), // 逐条提醒的纯文本列表。
+      export: document.getElementById("export-button"), // 当前有效结果的本地 JSON 导出。
+      copyStatus: document.getElementById("copy-status"), // 剪贴板成功或失败的独立播报。
+      manual: document.getElementById("manual-copy"), // 自动复制失败后的可见手动选区。
+      manualOutput: document.getElementById("manual-copy-output") // 手动复制的只读文本。
+    };
+    // 固定接口规定的相机顺序；标签与角度仍由本机配置提供。
+    const viewIds = ["front", "front_right", "right", "back_right", "back", "back_left", "left", "front_left"];
+    // 标准四视图只切换相机选择，不改动人物设定。
+    const standardViews = ["front", "right", "back", "left"];
+    // 页面状态只存于当前页面内存；序号确保已取消请求不会覆盖新输入。
+    const state = {
+      defaults: null, // 已校验的服务示例与选项。
+      result: null, // 最近一次成功返回的结果。
+      dirty: false, // 修改后必须重新生成，旧结果禁止复制和导出。
+      busy: false, // 是否有当前生成请求。
+      copying: false, // 剪贴板写入期间阻止重复动作。
+      requestId: 0, // 生成请求的递增版本号。
+      controller: null, // 当前生成请求的中断控制器。
+      featureSequence: 0 // 页面生命周期内用于新特征标识的递增序号。
+    };
+
+    // 创建纯文本元素；不允许接口或用户文本被解析为 HTML。
+    function textElement(tag, text, className = "") {
+      // 新节点由调用方加入对应结果区域。
+      const element = document.createElement(tag);
+      element.textContent = text;
+      if (className) element.className = className;
+      return element;
+    }
+
+    // 更新统一状态区域；颜色仅作为文字以外的辅助提示。
+    function showStatus(message, kind = "ready") {
+      ui.status.textContent = message;
+      ui.status.dataset.state = kind;
+    }
+
+    // 生成不含特殊字符的新标识，并避开所有仍在表单中的标识。
+    function nextFeatureId() {
+      // 当前占用标识最多四十项，新增时只需建立一个集合。
+      const used = new Set(Array.from(ui.rows.children, (row) => row.dataset.id));
+      // 循环只跳过曾经存在或默认示例正在使用的标识。
+      let id;
+      do { id = "feature_" + (++state.featureSequence); } while (used.has(id));
+      return id;
+    }
+
+    // 新建一行可编辑特征；保留合法且未冲突的接口标识。
+    function addFeature(feature = null) {
+      if (!state.defaults || ui.rows.children.length >= 40) return;
+      // 行节点同时拥有该特征的稳定标识，编辑描述时不重新生成。
+      const row = document.createElement("div");
+      row.className = "landmark-row";
+      row.dataset.id = feature && /^[A-Za-z0-9_-]{1,64}$/.test(feature.id) &&
+        !Array.from(ui.rows.children).some((item) => item.dataset.id === feature.id) ? feature.id : nextFeatureId();
+      // 输入框仅写入纯文本，长度与接口上限一致。
+      const label = document.createElement("input");
+      label.type = "text";
+      label.className = "feature-label";
+      label.maxLength = 300;
+      label.required = true;
+      label.placeholder = "例如：左袖的橙色布章";
+      label.value = feature?.label || "";
+      label.setAttribute("aria-label", "特征描述");
+      // 表面只能选择接口明确支持的值。
+      const surface = document.createElement("select");
+      surface.className = "feature-surface";
+      surface.setAttribute("aria-label", "特征绑定的人物表面");
+      for (const option of state.defaults.available_surfaces) { // 每项是受接口配置约束的表面。
+        // 选项标签通过文本节点创建，配置文字不会变成标记。
+        const item = textElement("option", option.label);
+        item.value = option.id;
+        surface.append(item);
+      }
+      if (feature) surface.value = feature.surface;
+      // 删除按钮仅操作所属行，由列表的委托监听器处理。
+      const remove = textElement("button", "×", "remove-button");
+      remove.type = "button";
+      remove.title = "删除这个特征";
+      remove.setAttribute("aria-label", "删除这个特征");
+      row.append(label, surface, remove);
+      ui.rows.append(row);
+      updateCounts();
+      if (!feature) label.focus();
+    }
+
+    // 从配置建立相机选项；箭头只是几何方向标记，不代表人物渲染图。
+    function renderViewOptions() {
+      ui.options.replaceChildren();
+      for (const view of state.defaults.available_views) { // 相机选项保持接口提供的顺序。
+        // 一个包装节点包含真实复选框和可点击的完整标签。
+        const option = document.createElement("div");
+        option.className = "view-option";
+        // 复选框值只能来自已校验的八个相机标识。
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.name = "views";
+        input.id = "view-" + view.id;
+        input.value = view.id;
+        // 标签与复选框显式关联，支持键盘和辅助技术。
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        // SVG 使用固定几何路径，相机角度只影响方向标记的旋转。
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 28 28");
+        svg.setAttribute("fill", "none");
+        svg.setAttribute("aria-hidden", "true");
+        // 圆环表示相机轨道。
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "14");
+        circle.setAttribute("cy", "14");
+        circle.setAttribute("r", "9");
+        circle.setAttribute("stroke", "currentColor");
+        circle.setAttribute("opacity", ".35");
+        // 固定箭头绕中心旋转，不翻转人物解剖方向。
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrow.setAttribute("d", "M14 2 10 8h8l-4-6ZM14 10v8M11 15l3 3 3-3");
+        arrow.setAttribute("stroke", "currentColor");
+        arrow.setAttribute("stroke-linejoin", "round");
+        arrow.setAttribute("transform", "rotate(" + view.azimuth_deg + " 14 14)");
+        svg.append(circle, arrow);
+        label.append(svg, textElement("span", view.label));
+        option.append(input, label);
+        ui.options.append(option);
+      }
+    }
+
+    // 汇总当前相机选择，统一用于预设识别、校验和提交快照。
+    function selectedViews() {
+      return Array.from(ui.options.querySelectorAll("input:checked"), (input) => input.value);
+    }
+
+    // 同步长度、特征数量和相机预设，不修改任何原始输入。
+    function updateCounts() {
+      document.getElementById("description-count").textContent = ui.description.value.length + " / 6000";
+      document.getElementById("style-count").textContent = ui.style.value.length + " / 1000";
+      document.getElementById("feature-count").textContent = ui.rows.children.length + " / 40 项";
+      ui.add.disabled = ui.rows.children.length >= 40;
+      // 预设根据当前选中集合识别，手动调整后自动回到自定义。
+      const selected = selectedViews();
+      document.getElementById("selected-count").textContent = "已选 " + selected.length + " 个";
+      // 标准预设要求恰好选中四个正交视角。
+      const preset = selected.length === 8 ? "all" : selected.length === 4 &&
+        standardViews.every((id) => selected.includes(id)) ? "standard" : "custom";
+      document.querySelectorAll("[data-preset]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.preset === preset));
+      });
+    }
+
+    // 旧版、生成中和复制中的结果统一禁止复制或导出。
+    function syncActions() {
+      // 当前结果是否可安全用于剪贴板或下载。
+      const disabled = !state.result || state.dirty || state.busy || state.copying;
+      document.querySelectorAll("[data-copy]").forEach((button) => { button.disabled = disabled; });
+      ui.export.disabled = disabled;
+      ui.generate.disabled = !state.defaults || state.busy;
+      ui.generate.setAttribute("aria-busy", String(state.busy));
+      ui.resultCard.setAttribute("aria-busy", String(state.busy));
+      ui.generateLabel.textContent = state.busy ? "正在生成视图约束…" : "生成多视图提示词";
+      ui.stale.hidden = !state.result || !state.dirty;
+    }
+
+    // 取消请求并使回调版本失效，防止网络响应覆盖后续编辑或重置。
+    function cancelGeneration() {
+      state.requestId += 1;
+      if (state.controller) state.controller.abort();
+      state.controller = null;
+      state.busy = false;
+    }
+
+    // 任意输入发生修改后立即让旧版失效，同时保留内容供对照。
+    function markEdited() {
+      // 保存取消前状态，以便准确解释为什么本次生成停止。
+      const wasBusy = state.busy;
+      cancelGeneration();
+      state.dirty = true;
+      ui.manual.hidden = true;
+      ui.manualOutput.value = "";
+      ui.copyStatus.textContent = "";
+      if (state.result) {
+        ui.badge.textContent = "设定已改 · 待更新";
+        ui.badge.dataset.state = "stale";
+      } else {
+        ui.badge.textContent = "等待生成";
+        ui.badge.dataset.state = "empty";
+      }
+      updateCounts();
+      syncActions();
+      showStatus(wasBusy ? "设定已修改，已取消刚才的请求。请为当前设定重新生成。" :
+        "设定已更新。生成后即可复制或导出当前版本。");
+    }
+
+    // 清除结果和待处理请求，再从接口缓存恢复完整默认示例。
+    function restoreExample() {
+      if (!state.defaults) return;
+      cancelGeneration();
+      state.result = null;
+      state.dirty = false;
+      ui.description.value = state.defaults.description;
+      ui.style.value = state.defaults.style;
+      ui.rows.replaceChildren();
+      state.defaults.features.forEach((feature) => addFeature(feature));
+      ui.options.querySelectorAll("input").forEach((input) => {
+        input.checked = state.defaults.views.includes(input.value);
+      });
+      ui.form.querySelectorAll("input, textarea").forEach((input) => { input.setCustomValidity(""); });
+      ui.result.hidden = true;
+      ui.empty.hidden = false;
+      ui.full.value = "";
+      ui.negative.value = "";
+      ui.viewResults.replaceChildren();
+      ui.rules.replaceChildren();
+      ui.edges.replaceChildren();
+      ui.warningList.replaceChildren();
+      ui.manual.hidden = true;
+      ui.manualOutput.value = "";
+      ui.copyStatus.textContent = "";
+      document.getElementById("negative-panel").open = false;
+      ui.badge.textContent = "等待生成";
+      ui.badge.dataset.state = "empty";
+      activateTab("tab-full");
+      updateCounts();
+      syncActions();
+      showStatus("示例已就绪。可以直接生成，或先调整人物与表面特征。");
+    }
+
+    // 验证配置结构，避免不完整响应生成无效选项或错误示例。
+    function validDefaults(data) {
+      if (!data || typeof data.description !== "string" || !data.description.trim() || data.description.length > 6000 ||
+          typeof data.style !== "string" || !data.style.trim() || data.style.length > 1000 ||
+          !Array.isArray(data.available_views) || data.available_views.length !== 8 ||
+          !Array.isArray(data.available_surfaces) || data.available_surfaces.length !== 5 ||
+          !Array.isArray(data.views) || !data.views.length || data.views.length > 8 ||
+          !Array.isArray(data.features) || data.features.length > 40) return false;
+      // 表面和相机标识必须唯一且属于约定集合。
+      const surfaces = new Set(["front", "back", "left", "right", "all"]);
+      return data.available_views.every((view) => view && viewIds.includes(view.id) && typeof view.label === "string" && Number.isFinite(view.azimuth_deg)) &&
+        new Set(data.available_views.map((view) => view.id)).size === 8 &&
+        data.available_surfaces.every((surface) => surface && surfaces.has(surface.id) && typeof surface.label === "string") &&
+        new Set(data.available_surfaces.map((surface) => surface.id)).size === 5 &&
+        new Set(data.views).size === data.views.length && data.views.every((id) => viewIds.includes(id)) &&
+        data.features.every((feature) => feature && typeof feature.id === "string" && typeof feature.label === "string" &&
+          feature.label.trim() && feature.label.length <= 300 && surfaces.has(feature.surface));
+    }
+
+    // 读取同源默认配置，失败后保留明确重试入口；不自行拼装另一个示例。
+    async function loadDefaults() {
+      ui.retry.hidden = true;
+      ui.defaultsStatus.hidden = false;
+      ui.defaultsMessage.textContent = "正在读取本机示例与视角选项…";
+      // 初始配置也设置超时，避免工作区永久停留在不可用状态。
+      const controller = new AbortController();
+      // 超时资源在成功和失败路径都释放。
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      try {
+        // 所有接口调用保持同源，且不发送到外部服务。
+        const response = await fetch("/api/defaults", { signal: controller.signal, cache: "no-store", mode: "same-origin" });
+        // JSON 解析失败统一转成可恢复的本机服务错误。
+        const data = await response.json().catch(() => { throw new Error("本机配置无法读取，请重新读取。"); });
+        if (!response.ok) throw new Error(typeof data?.error === "string" ? data.error : "本机配置暂时不可用。");
+        if (!validDefaults(data)) throw new Error("本机配置不完整，请检查服务版本后重新读取。");
+        state.defaults = data;
+        renderViewOptions();
+        restoreExample();
+        ui.fields.disabled = false;
+        ui.example.disabled = false;
+        ui.defaultsStatus.hidden = true;
+      } catch (error) { // 网络失败和超时不丢失重试能力。
+        ui.defaultsMessage.textContent = error.name === "AbortError" ? "读取配置超时，请确认本机服务仍在运行。" :
+          error instanceof TypeError ? "未能连接本机服务，请确认启动命令仍在运行。" : error.message;
+        ui.retry.hidden = false;
+        showStatus("工作区尚未就绪。请重新读取默认配置。", "error");
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    // 校验表单并建立不可变的请求快照；失败时聚焦具体输入。
+    function collectInput() {
+      for (const input of ui.form.querySelectorAll("textarea, input[type='text']")) { // 对每项可输入文本执行空白校验。
+        input.setCustomValidity(!input.value.trim() ? "请填写内容，不能只包含空格。" :
+          input.value.length > input.maxLength ? "内容超过 " + input.maxLength + " 字限制，请缩短后重试。" : "");
+      }
+      if (!ui.form.reportValidity()) return null;
+      // 按页面中的固定顺序收集选中视角。
+      const views = selectedViews();
+      if (!views.length) {
+        showStatus("请至少选择一个相机视角。", "error");
+        ui.options.querySelector("input")?.focus();
+        return null;
+      }
+      return {
+        description: ui.description.value, // 保留用户原文，空白仅用于必填判断。
+        style: ui.style.value, // 风格原文保持跨视角共享。
+        views, // 相机变化只在本字段表达。
+        features: Array.from(ui.rows.children, (row) => ({
+          id: row.dataset.id, // 编辑前后稳定且安全的特征标识。
+          label: row.querySelector("input").value, // 原始特征描述。
+          surface: row.querySelector("select").value // 选中的人物解剖表面。
+        }))
+      };
+    }
+
+    // 校验结果中会被页面使用的字段；不完整结果不能替换上一版。
+    function validResult(data, submittedViews) {
+      // 特征数组同时供可见、隐藏和掠视三个分组使用。
+      const validFeatures = (features) => Array.isArray(features) && features.every((feature) => feature &&
+        typeof feature.id === "string" && typeof feature.label === "string" && typeof feature.surface === "string");
+      // 规则和提醒必须是纯文本数组。
+      const strings = (items) => Array.isArray(items) && items.every((item) => typeof item === "string");
+      return data?.schema_version === "character-multiview-v1" && data.mode === "RULE_BASED_CAUSAL_DESIGN" &&
+        typeof data.character_id === "string" && data.character_id.length > 0 &&
+        typeof data.full_prompt === "string" && data.full_prompt.trim() && typeof data.negative_prompt === "string" &&
+        data.identity && typeof data.identity.description === "string" && validFeatures(data.identity.features) &&
+        typeof data.style === "string" && strings(data.consistency_rules) && strings(data.warnings) &&
+        Array.isArray(data.views) && data.views.length === submittedViews.length &&
+        data.views.every((view) => view && submittedViews.includes(view.id) && typeof view.label === "string" &&
+          Number.isFinite(view.azimuth_deg) && typeof view.prompt === "string" && view.prompt.trim() &&
+          typeof view.negative_prompt === "string" && validFeatures(view.visible_features) &&
+          validFeatures(view.hidden_features) && validFeatures(view.grazing_features)) &&
+        new Set(data.views.map((view) => view.id)).size === submittedViews.length &&
+        Array.isArray(data.causal_graph?.nodes) && Array.isArray(data.causal_graph.edges) &&
+        data.causal_graph.nodes.every((node) => node && typeof node.id === "string" && typeof node.label === "string") &&
+        data.causal_graph.edges.every((edge) => edge && typeof edge.source === "string" && typeof edge.target === "string" && typeof edge.label === "string");
+    }
+
+    // 将表面标识映射为配置中的人类可读标签。
+    function surfaceLabel(id) {
+      return state.defaults.available_surfaces.find((surface) => surface.id === id)?.label || id;
+    }
+
+    // 建立一个特征可见性分组，空组明确显示“无”。
+    function featureGroup(title, features, kind) {
+      // 单组由标签和自动换行的特征列表组成。
+      const group = document.createElement("div");
+      group.className = "feature-group";
+      // 特征标签容器避免长描述撑破卡片。
+      const tags = document.createElement("div");
+      tags.className = "feature-tags";
+      features.forEach((feature) => {
+        tags.append(textElement("span", feature.label + " · " + surfaceLabel(feature.surface), "feature-tag " + kind));
+      });
+      if (!features.length) tags.append(textElement("span", "无", "feature-none"));
+      group.append(textElement("span", title, "feature-group-title"), tags);
+      return group;
+    }
+
+    // 呈现已校验的单视角结果，所有动态文本均不经过 HTML 解析。
+    function renderView(view, index) {
+      // 独立视角卡片拥有自己的提示词展开区与复制入口。
+      const card = document.createElement("article");
+      card.className = "view-result";
+      // 顶部显示接口标签和相机方位角。
+      const top = document.createElement("div");
+      top.className = "view-result-top";
+      // 语义标题与角度共同构成当前视角标识。
+      const heading = document.createElement("div");
+      heading.append(textElement("h3", view.label), textElement("span", view.azimuth_deg + "°", "azimuth"));
+      // 复制动作通过固定数据属性委托处理。
+      const copy = textElement("button", "复制此视角", "small-button");
+      copy.type = "button";
+      copy.dataset.copy = "view";
+      copy.dataset.view = view.id;
+      copy.dataset.label = "复制此视角";
+      copy.setAttribute("aria-label", "复制" + view.label + "提示词");
+      top.append(heading, copy);
+      card.append(top, featureGroup("可见", view.visible_features, "visible"),
+        featureGroup("掠视", view.grazing_features, "grazing"), featureGroup("隐藏", view.hidden_features, "hidden"));
+      // 提示词展开后仍使用只读文本框，方便直接检查与选择。
+      const details = document.createElement("details");
+      details.className = "view-details";
+      // 文本框通过可见标签与稳定序号关联。
+      const output = document.createElement("textarea");
+      output.id = "view-output-" + index;
+      output.readOnly = true;
+      output.spellcheck = false;
+      output.value = view.prompt;
+      // 提示词标签保留给辅助技术，摘要负责展开操作。
+      const label = textElement("label", view.label + "完整提示词", "sr-only");
+      label.htmlFor = output.id;
+      details.append(textElement("summary", "查看此视角提示词"), label, output);
+      card.append(details);
+      return card;
+    }
+
+    // 结果写入后一次性切换成功状态；身份和可见性均来自同一请求快照。
+    function renderResult(data) {
+      state.result = data;
+      state.dirty = false;
+      ui.empty.hidden = true;
+      ui.result.hidden = false;
+      ui.badge.textContent = "已生成 · 当前设定";
+      ui.badge.dataset.state = "success";
+      document.getElementById("character-id").textContent = data.character_id;
+      document.getElementById("result-view-count").textContent = data.views.length + " 个视角 · 同一身份";
+      ui.full.value = data.full_prompt;
+      ui.negative.value = data.negative_prompt;
+      ui.viewResults.replaceChildren(...data.views.map((view, index) => renderView(view, index)));
+      ui.rules.replaceChildren(...data.consistency_rules.map((rule) => textElement("li", rule)));
+      // 用映射解析关系端点，避免按每条关系重复遍历节点。
+      const nodes = new Map(data.causal_graph.nodes.map((node) => [node.id, node.label]));
+      ui.edges.replaceChildren(...data.causal_graph.edges.map((edge) => {
+        // 每条关系以来源、目标和解释组成一个可读块。
+        const row = document.createElement("div");
+        row.className = "edge-row";
+        row.append(textElement("strong", (nodes.get(edge.source) || edge.source) + " → " + (nodes.get(edge.target) || edge.target)),
+          textElement("small", edge.label));
+        return row;
+      }));
+      ui.warningList.replaceChildren(...data.warnings.map((warning) => textElement("li", warning)));
+      ui.warnings.hidden = !data.warnings.length;
+      ui.manual.hidden = true;
+      ui.copyStatus.textContent = "";
+      document.querySelectorAll("[data-copy]").forEach((button) => { button.textContent = button.dataset.label; });
+    }
+
+    // 提交快照并用中断控制器与版本号共同防止乱序响应。
+    async function generate(event) {
+      event.preventDefault();
+      if (state.busy || !state.defaults) return;
+      // 表单值一经收集，本次请求不再读取正在编辑的控件。
+      const snapshot = collectInput();
+      if (!snapshot) return;
+      // 每个请求拥有唯一版本，编辑或重置会立即使它失效。
+      const requestId = ++state.requestId;
+      // 网络等待最多三十秒，编辑时也可主动中断。
+      const controller = new AbortController();
+      // 当前请求独有的超时句柄，无论何种结局均清理。
+      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      state.controller = controller;
+      state.busy = true;
+      ui.badge.textContent = "正在生成…";
+      ui.badge.dataset.state = "loading";
+      ui.copyStatus.textContent = "";
+      syncActions();
+      showStatus("正在固定人物身份，并计算各相机方向的特征可见性…", "loading");
+      try {
+        // JSON 仅提交至当前来源的本机服务。
+        const response = await fetch("/api/generate", {
+          method: "POST", // 通过请求体提交本次快照。
+          headers: { "Content-Type": "application/json" }, // 与本机接口约定的数据格式。
+          body: JSON.stringify(snapshot), // 原文、选中视角与稳定特征标识。
+          signal: controller.signal, // 编辑、重置或超时可终止等待。
+          mode: "same-origin", // 禁止接口请求跳转到外部来源。
+          cache: "no-store" // 不复用旧的生成响应。
+        });
+        // 服务错误只按纯文本显示，不把错误页插入页面。
+        const data = await response.json().catch(() => { throw new Error("服务响应无法读取，请重新生成。"); });
+        if (requestId !== state.requestId) return;
+        if (!response.ok) throw new Error(typeof data?.error === "string" ? data.error : "本次生成未完成，请重试。");
+        if (!validResult(data, snapshot.views)) throw new Error("服务返回的视图结果不完整，请检查服务版本后重试。");
+        renderResult(data);
+        showStatus("已生成 " + data.views.length + " 个视角。可检查可见性、复制提示词，或导出当前结果。", "success");
+      } catch (error) { // 被后续编辑撤销的请求不再改变页面状态。
+        if (requestId !== state.requestId) return;
+        ui.badge.textContent = state.result ? (state.dirty ? "设定已改 · 待更新" : "已保留上次结果") : "生成未完成";
+        ui.badge.dataset.state = state.result ? (state.dirty ? "stale" : "success") : "error";
+        showStatus(error.name === "AbortError" ? "生成等待超时，请重试。若持续无响应，请检查本机服务。" :
+          error instanceof TypeError ? "未能连接本机服务，请确认启动命令仍在运行后重试。" : error.message, "error");
+      } finally {
+        window.clearTimeout(timeout);
+        if (requestId === state.requestId) {
+          state.busy = false;
+          state.controller = null;
+          syncActions();
+        }
+      }
+    }
+
+    // 根据当前结果和复制入口提取文本；每个视角保留后端生成的完整提示词。
+    function copyTextFor(button) {
+      if (button.dataset.copy === "full") return state.result.full_prompt;
+      if (button.dataset.copy === "negative") return state.result.negative_prompt;
+      return state.result.views.find((view) => view.id === button.dataset.view)?.prompt || "";
+    }
+
+    // 显示真实可选文本并尝试兼容复制；失败时保留选区供用户手动操作。
+    function copyWithSelection(text) {
+      ui.manualOutput.value = text;
+      ui.manual.hidden = false;
+      ui.manualOutput.focus();
+      ui.manualOutput.select();
+      ui.manualOutput.setSelectionRange(0, text.length);
+      try { return document.execCommand("copy"); } catch { return false; }
+    }
+
+    // 优先使用剪贴板 API，只有实际成功才播报成功；输入变化会取消降级复制。
+    async function copyResult(button) {
+      if (!state.result || state.dirty || state.busy || state.copying) return;
+      // 复制动作绑定当前结果对象，异步结束后再次核对有效性。
+      const result = state.result;
+      // 本次复制的文本不可受后续 UI 切换影响。
+      const text = copyTextFor(button);
+      if (!text) return;
+      state.copying = true;
+      syncActions();
+      // 只有浏览器确认成功，才显示“已复制”。
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          try { await navigator.clipboard.writeText(text); copied = true; } catch { /* 浏览器拒绝后继续使用选区降级。 */ }
+        }
+        if (state.result !== result || state.dirty || state.busy) return;
+        if (!copied) copied = copyWithSelection(text);
+        if (copied) ui.manual.hidden = true;
+        button.textContent = copied ? "已复制 ✓" : "重新复制";
+        ui.copyStatus.textContent = copied ? "提示词已复制，可以粘贴使用。" : "自动复制未获允许，已显示并选中文本，请按 Ctrl / ⌘ + C。";
+        ui.copyStatus.dataset.state = copied ? "success" : "error";
+      } finally {
+        state.copying = false;
+        syncActions();
+      }
+    }
+
+    // 将当前有效结果作为本地 JSON 下载，不上传文件或设定。
+    function exportResult() {
+      if (!state.result || state.dirty || state.busy || state.copying) return;
+      // Blob 只在内存中构造，保留完整可复用的接口结果。
+      const blob = new Blob([JSON.stringify(state.result, null, 2)], { type: "application/json;charset=utf-8" });
+      // 临时对象地址仅用于本次下载，触发后释放。
+      const url = URL.createObjectURL(blob);
+      // 文件名限制为安全字符，不用用户描述构造路径。
+      const filename = state.result.character_id.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 64) || "character";
+      // 临时链接由 DOM 管理，下载触发后立刻移除。
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "character-" + filename + ".json";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      ui.copyStatus.textContent = "已发起 JSON 下载，请在浏览器的下载记录中查看。";
+      ui.copyStatus.dataset.state = "success";
+    }
+
+    // 切换结果标签，维护面板关联和键盘焦点顺序。
+    function activateTab(id) {
+      document.querySelectorAll(".tab").forEach((tab) => {
+        // 只有选中标签进入默认 Tab 顺序。
+        const active = tab.id === id;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+        document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
+      });
+    }
+
+    // 输入事件清理上次空白校验；只修改设定区域会让结果失效。
+    ui.form.addEventListener("input", (event) => {
+      if (event.target.matches("textarea, input[type='text']")) event.target.setCustomValidity("");
+      markEdited();
+    });
+    // select 的跨浏览器 change 事件与复选框都经过同一过期保护。
+    ui.form.addEventListener("change", (event) => {
+      if (event.target.matches("select, input[type='checkbox']")) markEdited();
+    });
+    // 新特征创建后立即聚焦描述框，并使旧结果过期。
+    ui.add.addEventListener("click", () => { addFeature(); markEdited(); });
+    // 删除动作只响应自己列表中的删除按钮。
+    ui.rows.addEventListener("click", (event) => {
+      // 委托目标必须处于实际的特征行内。
+      const button = event.target.closest(".remove-button");
+      if (!button) return;
+      // 删除后把焦点移到相邻操作，避免焦点落回页面顶端。
+      const next = button.closest(".landmark-row").nextElementSibling?.querySelector("input") || ui.add;
+      button.closest(".landmark-row").remove();
+      markEdited();
+      next.focus();
+    });
+    // 标准和完整预设批量切换相机；自定义入口直接定位第一个选择项。
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.preset === "custom") { ui.options.querySelector("input")?.focus(); return; }
+        // 预设只替换视角集合，保留描述、风格和特征标识。
+        const selected = button.dataset.preset === "all" ? viewIds : standardViews;
+        ui.options.querySelectorAll("input").forEach((input) => { input.checked = selected.includes(input.value); });
+        markEdited();
+      });
+    });
+    // 表单与快捷键共享相同的 HTML 必填和请求快照校验。
+    ui.form.addEventListener("submit", generate);
+    document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && !event.isComposing) {
+        event.preventDefault();
+        if (state.defaults && !state.busy) ui.form.requestSubmit();
+      }
+    });
+    // 示例与重置都恢复本机配置，并撤销尚未完成的生成。
+    ui.example.addEventListener("click", restoreExample);
+    ui.reset.addEventListener("click", restoreExample);
+    ui.retry.addEventListener("click", loadDefaults);
+    ui.export.addEventListener("click", exportResult);
+    // 动态视角卡片通过结果容器统一接入复制和标签操作。
+    ui.result.addEventListener("click", (event) => {
+      // 只响应当前容器中的复制按钮。
+      const copy = event.target.closest("[data-copy]");
+      if (copy && !copy.disabled) copyResult(copy);
+      // 标签本身不受结果是否过期影响，旧版仍可检查。
+      const tab = event.target.closest(".tab");
+      if (tab) activateTab(tab.id);
+    });
+    // 标签支持方向键、Home 和 End，与标准可访问标签模式一致。
+    document.querySelector(".tablist").addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      // 固定三个标签的 DOM 顺序就是键盘导航顺序。
+      const tabs = Array.from(document.querySelectorAll(".tab"));
+      // 原焦点不存在时从首项开始，不干扰标签以外的快捷键。
+      const current = tabs.indexOf(document.activeElement);
+      if (current < 0) return;
+      event.preventDefault();
+      // 左右导航循环，Home 和 End 直接定位边界。
+      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 :
+        (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      activateTab(tabs[next].id);
+      tabs[next].focus();
+    });
+    // 首屏只请求本机默认配置，保留真实空状态供用户主动生成。
+    loadDefaults();
+  </script>
+</body>
+</html>

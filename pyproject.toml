@@ -11,6 +11,10 @@ dependencies = ["numpy>=2.0,<3"] # 仅依赖稳定的数组与线性代数接口
 
 [project.scripts]
 causal-storyboard = "causal_storyboard.cli:main" # 可选安装后的分镜命令；源码入口不需要 NumPy。
+causal-character = "causal_character.cli:main" # 固定人物身份、相机干预及多视图提示词，仅依赖标准库。
 
 [tool.setuptools.packages.find]
 where = ["src"] # 源目录可直接通过 PYTHONPATH 导入。
+
+[tool.setuptools.package-data]
+causal_character = ["web.html"] # 人物多视图页面随包分发，不需要前端构建或外部资源。
